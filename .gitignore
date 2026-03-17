@@ -1,0 +1,13 @@
+# 忽略大型 PDF 和圖片
+*.pdf
+*.png
+*.xlsx
+*.xls
+
+# 忽略 Python 快取
+__pycache__/
+*.pyc
+
+# 忽略系統檔案
+.DS_Store
+Thumbs.db
