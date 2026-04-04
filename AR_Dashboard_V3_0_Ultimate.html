@@ -1,0 +1,2082 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR 智慧戰情室 V3.0 - Ultimate 旗艦版</title>
+    <!-- SheetJS CDN for Excel import -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+
+        :root {
+            --bg: #05050f;
+            --card: #0e0e1a;
+            --card2: #111120;
+            --accent: #ffd700;
+            --cyan: #00d4ff;
+            --purple: #a855f7;
+            --danger: #ff4757;
+            --warning: #ffa502;
+            --success: #2ed573;
+            --border: rgba(255, 215, 0, 0.15);
+            --border2: rgba(0, 212, 255, 0.1);
+            --text: #f0f0f8;
+            --muted: rgba(240, 240, 248, 0.5);
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass2: rgba(255, 255, 255, 0.06);
+            --risk0: #2ed573;
+            --risk1: #7bed9f;
+            --risk2: #ffa502;
+            --risk3: #ff6b81;
+            --risk4: #ff4757;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', 'PingFang TC', -apple-system, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden
+        }
+
+        /* Particle BG */
+        #particles-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.15;
+            animation: float linear infinite
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) scale(0)
+            }
+
+            100% {
+                transform: translateY(-10vh) scale(1)
+            }
+        }
+
+        /* Layout */
+        .app {
+            position: relative;
+            z-index: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 24px 40px
+        }
+
+        /* Header */
+        .hdr {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 28px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            margin-bottom: 16px;
+            backdrop-filter: blur(20px)
+        }
+
+        .hdr-title {
+            display: flex;
+            flex-direction: column
+        }
+
+        .hdr-title h1 {
+            font-size: 26px;
+            font-weight: 900;
+            color: var(--accent);
+            line-height: 1.1;
+            letter-spacing: -0.5px
+        }
+
+        .hdr-title p {
+            font-size: 13px;
+            color: var(--cyan);
+            opacity: 0.8;
+            margin-top: 3px;
+            font-weight: 600;
+            letter-spacing: 2px
+        }
+
+        .hdr-stats {
+            display: flex;
+            gap: 24px;
+            align-items: center
+        }
+
+        .hdr-stat {
+            text-align: center
+        }
+
+        .hdr-stat-val {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--accent)
+        }
+
+        .hdr-stat-lbl {
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-transform: uppercase
+        }
+
+        .hdr-right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px
+        }
+
+        .status-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.6)
+            }
+
+            50% {
+                box-shadow: 0 0 0 8px rgba(46, 213, 115, 0)
+            }
+        }
+
+        #clock {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--accent);
+            font-variant-numeric: tabular-nums
+        }
+
+        .clock-date {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 1px
+        }
+
+        /* Global Filters */
+        .filters {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 12px 20px;
+            background: var(--glass2);
+            border: 1px solid var(--border2);
+            border-radius: 16px;
+            margin-bottom: 16px;
+            flex-wrap: wrap
+        }
+
+        .filter-lbl {
+            font-size: 11px;
+            color: var(--cyan);
+            font-weight: 700;
+            letter-spacing: 1px;
+            white-space: nowrap
+        }
+
+        .filter-select {
+            background: var(--card2);
+            border: 1px solid var(--border2);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            cursor: pointer;
+            outline: none
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--muted);
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 600
+        }
+
+        .filter-btn.active,
+        .filter-btn:hover {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent)
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            background: var(--card2);
+            padding: 6px;
+            border-radius: 16px;
+            border: 1px solid var(--border)
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 11px 8px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            transition: 0.25s;
+            background: transparent;
+            color: var(--muted);
+            letter-spacing: 0.5px
+        }
+
+        .tab-btn span {
+            display: block;
+            font-size: 9px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            opacity: 0.7;
+            margin-top: 2px
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(0, 212, 255, 0.1));
+            color: var(--accent);
+            border: 1px solid var(--border)
+        }
+
+        .tab-btn:hover:not(.active) {
+            background: var(--glass2);
+            color: var(--text)
+        }
+
+        .tab-content {
+            display: none
+        }
+
+        .tab-content.active {
+            display: block
+        }
+
+        /* Card */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            padding: 22px;
+            backdrop-filter: blur(20px);
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: 0.3s
+        }
+
+        .card:hover {
+            border-color: rgba(255, 215, 0, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5)
+        }
+
+        .card-lbl {
+            font-size: 11px;
+            color: var(--cyan);
+            letter-spacing: 2px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start
+        }
+
+        .card-lbl span {
+            display: block;
+            font-size: 10px;
+            opacity: 0.5;
+            font-weight: 400;
+            letter-spacing: 1px;
+            margin-top: 2px;
+            text-transform: none
+        }
+
+        .card-lbl2 {
+            font-size: 11px;
+            color: var(--cyan);
+            letter-spacing: 2px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 14px
+        }
+
+        /* KPI */
+        .kpi-val {
+            font-size: 38px;
+            font-weight: 900;
+            color: var(--accent);
+            line-height: 1;
+            margin: 8px 0 6px
+        }
+
+        .kpi-val.sm {
+            font-size: 28px
+        }
+
+        .kpi-sub {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .kpi-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800;
+            margin-left: 6px
+        }
+
+        .badge-up {
+            background: rgba(255, 71, 87, 0.2);
+            color: var(--danger)
+        }
+
+        .badge-dn {
+            background: rgba(46, 213, 115, 0.2);
+            color: var(--success)
+        }
+
+        /* Grid layouts */
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 16px
+        }
+
+        .grid-3-1 {
+            display: grid;
+            grid-template-columns: 3fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 16px
+        }
+
+        .grid-1-2 {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 16px;
+            margin-bottom: 16px
+        }
+
+        .span2 {
+            grid-column: span 2
+        }
+
+        .span3 {
+            grid-column: span 3
+        }
+
+        /* Donut CSS */
+        .donut-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 10px 0
+        }
+
+        .donut-svg {
+            overflow: visible
+        }
+
+        .donut-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-left: 16px
+        }
+
+        .donut-leg-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px
+        }
+
+        .donut-leg-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0
+        }
+
+        /* Canvas wrapper */
+        .chart-wrap {
+            position: relative;
+            margin-top: 8px
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%
+        }
+
+        /* Aging detail cards */
+        .aging-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 12px
+        }
+
+        .aging-card {
+            background: var(--glass2);
+            border-radius: 14px;
+            padding: 14px;
+            border-top: 3px solid
+        }
+
+        .aging-card-val {
+            font-size: 20px;
+            font-weight: 800;
+            margin: 6px 0 4px
+        }
+
+        .aging-card-sub {
+            font-size: 10px;
+            color: var(--muted);
+            margin-bottom: 8px
+        }
+
+        .aging-bar-bg {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 2px
+        }
+
+        .aging-bar-fill {
+            height: 4px;
+            border-radius: 2px;
+            transition: width 1s
+        }
+
+        /* Risk table */
+        .risk-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 6px;
+            margin-top: 8px
+        }
+
+        .risk-table th {
+            font-size: 10px;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-align: left;
+            padding: 6px 10px;
+            font-weight: 700;
+            text-transform: uppercase
+        }
+
+        .risk-table td {
+            padding: 10px 10px;
+            font-size: 12px;
+            background: var(--glass2);
+            border: 1px solid rgba(255, 255, 255, 0.04)
+        }
+
+        .risk-table td:first-child {
+            border-radius: 10px 0 0 10px
+        }
+
+        .risk-table td:last-child {
+            border-radius: 0 10px 10px 0
+        }
+
+        .risk-table tr:hover td {
+            background: rgba(255, 215, 0, 0.05)
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 800
+        }
+
+        /* Priority queue */
+        .pq-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--glass2);
+            border-radius: 14px;
+            margin-bottom: 8px;
+            border-left: 4px solid
+        }
+
+        .pq-rank {
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--muted);
+            width: 24px;
+            flex-shrink: 0
+        }
+
+        .pq-info {
+            flex: 1
+        }
+
+        .pq-name {
+            font-size: 14px;
+            font-weight: 700
+        }
+
+        .pq-meta {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 2px
+        }
+
+        .pq-tag {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 2px 10px;
+            border-radius: 6px;
+            flex-shrink: 0
+        }
+
+        .pq-urgency {
+            font-size: 14px;
+            font-weight: 800;
+            width: 56px;
+            text-align: right;
+            flex-shrink: 0
+        }
+
+        /* Gauge */
+        .gauge-wrap {
+            text-align: center;
+            padding: 10px 0
+        }
+
+        .gauge-lbl {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 6px;
+            letter-spacing: 1px
+        }
+
+        /* DAX panel */
+        .dax-panel {
+            background: var(--card2);
+            border: 1px solid var(--border2);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 10px
+        }
+
+        .dax-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            cursor: pointer;
+            user-select: none;
+            transition: 0.2s
+        }
+
+        .dax-header:hover {
+            background: var(--glass2)
+        }
+
+        .dax-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--cyan)
+        }
+
+        .dax-arrow {
+            font-size: 12px;
+            color: var(--muted);
+            transition: 0.3s
+        }
+
+        .dax-body {
+            display: none;
+            padding: 0 18px 16px
+        }
+
+        .dax-body.open {
+            display: block
+        }
+
+        .dax-code {
+            background: #05050f;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+            border-radius: 10px;
+            padding: 14px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.7;
+            color: #e2c94e;
+            overflow-x: auto;
+            margin-top: 10px;
+            white-space: pre-wrap
+        }
+
+        .dax-desc {
+            font-size: 11px;
+            color: var(--muted);
+            line-height: 1.6;
+            margin-top: 8px;
+            padding: 0 4px
+        }
+
+        /* Alert cards */
+        .alert-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-top: 12px
+        }
+
+        .alert-card {
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid
+        }
+
+        .alert-card-title {
+            font-size: 13px;
+            font-weight: 800;
+            margin-bottom: 8px
+        }
+
+        .alert-card-body {
+            font-size: 12px;
+            line-height: 1.6;
+            color: var(--muted)
+        }
+
+        .alert-card-body strong {
+            color: var(--accent)
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--card2)
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 215, 0, 0.3);
+            border-radius: 3px
+        }
+
+        /* Tooltip */
+        #tooltip {
+            position: fixed;
+            background: rgba(14, 14, 26, 0.95);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+            max-width: 220px;
+            line-height: 1.6;
+            backdrop-filter: blur(10px)
+        }
+
+        #tooltip strong {
+            color: var(--accent);
+            display: block;
+            margin-bottom: 4px;
+            font-size: 13px
+        }
+
+        /* Sortable table header */
+        .sort-th {
+            cursor: pointer;
+            user-select: none
+        }
+
+        .sort-th:hover {
+            color: var(--accent)
+        }
+
+        /* Gauge arc via SVG */
+        .gauge-svg text {
+            font-family: 'Inter', sans-serif
+        }
+
+        /* Number counter animation */
+        @keyframes countUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .kpi-val {
+            animation: countUp 0.5s ease both
+        }
+
+        /* Section title */
+        .section-title {
+            font-size: 12px;
+            color: var(--muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 12px;
+            font-weight: 700;
+            padding-left: 4px;
+            border-left: 3px solid var(--accent)
+        }
+
+        /* ─── Import Toolbar ─────────────────────── */
+        .import-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 18px;
+            background: linear-gradient(135deg, rgba(14, 14, 26, 0.95), rgba(20, 20, 38, 0.95));
+            border: 1px solid rgba(255, 215, 0, 0.15);
+            border-radius: 14px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(20px);
+            flex-wrap: wrap
+        }
+
+        .import-lbl {
+            font-size: 11px;
+            color: var(--muted);
+            letter-spacing: 1.5px;
+            font-weight: 700;
+            text-transform: uppercase;
+            white-space: nowrap
+        }
+
+        .import-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            background: rgba(255, 215, 0, 0.08);
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-family: 'Inter', sans-serif
+        }
+
+        .import-btn:hover {
+            background: rgba(255, 215, 0, 0.18);
+            border-color: var(--accent);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(255, 215, 0, 0.15)
+        }
+
+        .import-btn.cyan {
+            border-color: rgba(0, 212, 255, 0.3);
+            background: rgba(0, 212, 255, 0.08);
+            color: var(--cyan)
+        }
+
+        .import-btn.cyan:hover {
+            background: rgba(0, 212, 255, 0.18);
+            border-color: var(--cyan);
+            box-shadow: 0 4px 16px rgba(0, 212, 255, 0.15)
+        }
+
+        .import-btn.green {
+            border-color: rgba(46, 213, 115, 0.3);
+            background: rgba(46, 213, 115, 0.08);
+            color: var(--success)
+        }
+
+        .import-btn.green:hover {
+            background: rgba(46, 213, 115, 0.18);
+            border-color: var(--success);
+            box-shadow: 0 4px 16px rgba(46, 213, 115, 0.15)
+        }
+
+        .import-status {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            animation: countUp 0.3s ease both
+        }
+
+        .import-status.success {
+            display: inline-flex;
+            background: rgba(46, 213, 115, 0.12);
+            border: 1px solid rgba(46, 213, 115, 0.3);
+            color: var(--success)
+        }
+
+        .import-status.error {
+            display: inline-flex;
+            background: rgba(255, 71, 87, 0.12);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            color: var(--danger)
+        }
+
+        .import-divider {
+            width: 1px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.08)
+        }
+
+        .import-info {
+            font-size: 10px;
+            color: var(--muted);
+            margin-left: auto
+        }
+    </style>
+</head>
+
+<body>
+    <div id="particles-bg"></div>
+    <div id="tooltip"></div>
+    <div class="app">
+
+        <!-- ═══ HEADER ═══ -->
+        <header class="hdr">
+            <div class="hdr-title">
+                <h1>應收帳款戰略指揮中心</h1>
+                <p>AR STRATEGIC INTELLIGENCE CENTER V3.0 ULTIMATE</p>
+            </div>
+            <div class="hdr-stats">
+                <div class="hdr-stat">
+                    <div class="hdr-stat-val" id="hdr-total">$44.92M</div>
+                    <div class="hdr-stat-lbl">應收總額 TOTAL AR</div>
+                </div>
+                <div class="hdr-stat">
+                    <div class="hdr-stat-val" style="color:var(--danger)" id="hdr-overdue">12</div>
+                    <div class="hdr-stat-lbl">逾期客戶 OVERDUE</div>
+                </div>
+                <div class="hdr-stat">
+                    <div class="hdr-stat-val" style="color:var(--warning)" id="hdr-highrisk">4</div>
+                    <div class="hdr-stat-lbl">高風險 HIGH RISK</div>
+                </div>
+            </div>
+            <div class="hdr-right">
+                <div style="font-size:12px;color:var(--muted)"><span class="status-dot"></span> &nbsp;SYSTEM ONLINE
+                </div>
+                <div id="clock">--:--:--</div>
+                <div class="clock-date" id="clock-date">---</div>
+            </div>
+        </header>
+
+        <!-- ═══ IMPORT TOOLBAR ═══ -->
+        <div class="import-toolbar">
+            <span class="import-lbl">📊 資料匯入</span>
+            <div class="import-divider"></div>
+            <!-- 隱藏的文件選擇器 -->
+            <input type="file" id="file-input" accept=".xlsx,.xls" style="display:none"
+                onchange="handleFileImport(event)">
+            <button class="import-btn" onclick="document.getElementById('file-input').click()">📥 匯入 Excel</button>
+            <button class="import-btn cyan" onclick="exportCurrentData()">📤 匯出 JSON</button>
+            <button class="import-btn green" onclick="resetToDefault()">🔄 還原預設</button>
+            <div id="import-status" class="import-status"></div>
+            <div class="import-info">支援 <strong style="color:var(--accent)">AR_Template_V3_0.xlsx</strong> 格式 |
+                匯入後自動更新所有圖表</div>
+        </div>
+
+        <!-- ═══ GLOBAL FILTERS ═══ -->
+        <div class="filters">
+            <span class="filter-lbl">🔍 FILTER</span>
+            <select class="filter-select" id="flt-city" onchange="applyFilters()">
+                <option value="all">全部城市 ALL CITIES</option>
+                <option value="taipei">台北 Taipei</option>
+                <option value="hsinchu">新竹 Hsinchu</option>
+                <option value="taichung">台中 Taichung</option>
+                <option value="kaohsiung">高雄 Kaohsiung</option>
+            </select>
+            <span class="filter-lbl" style="margin-left:8px">風險等級 RISK:</span>
+            <button class="filter-btn active" onclick="toggleRiskFilter(this,'all')">全部</button>
+            <button class="filter-btn" onclick="toggleRiskFilter(this,'safe')">無風險</button>
+            <button class="filter-btn" onclick="toggleRiskFilter(this,'low')">低</button>
+            <button class="filter-btn" onclick="toggleRiskFilter(this,'mid')">中</button>
+            <button class="filter-btn" onclick="toggleRiskFilter(this,'high')">高</button>
+            <button class="filter-btn" onclick="toggleRiskFilter(this,'critical')">超高</button>
+        </div>
+
+        <!-- ═══ TAB NAV ═══ -->
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab(0,this)">① 應收概況<span>AR OVERVIEW</span></button>
+            <button class="tab-btn" onclick="switchTab(1,this)">② 帳齡管控<span>AGING CONTROL</span></button>
+            <button class="tab-btn" onclick="switchTab(2,this)">③ 風險管控<span>RISK MGMT</span></button>
+            <button class="tab-btn" onclick="switchTab(3,this)">④ 回收決策<span>COLLECTION</span></button>
+        </div>
+
+        <!-- ══════════════════════════════════════════
+       TAB 1: 應收概況 AR OVERVIEW
+  ══════════════════════════════════════════ -->
+        <div class="tab-content active" id="tab0">
+
+            <!-- 7 KPI Cards -->
+            <div class="grid-4" style="grid-template-columns:repeat(4,1fr)">
+                <div class="card">
+                    <div class="card-lbl">期末應收餘額<span>ENDING AR BALANCE</span></div>
+                    <div class="kpi-val" id="kpi-ar">$44.92M</div>
+                    <div class="kpi-sub">較上月 <span class="kpi-badge badge-up">↑ 0.8%</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-lbl">累計營收<span>CUMULATIVE REVENUE</span></div>
+                    <div class="kpi-val" id="kpi-rev">$318.5M</div>
+                    <div class="kpi-sub">本年度截至今日</div>
+                </div>
+                <div class="card">
+                    <div class="card-lbl">應收帳款比率<span>AR RATIO</span></div>
+                    <div class="kpi-val" id="kpi-ratio">14.1%</div>
+                    <div class="kpi-sub">目標: <span style="color:var(--success)">≤12.0%</span></div>
+                </div>
+                <div class="card">
+                    <div class="card-lbl">應收帳款周轉率<span>AR TURNOVER</span></div>
+                    <div class="kpi-val" id="kpi-turn">8.6x</div>
+                    <div class="kpi-sub">年度現金回款 / 平均應收</div>
+                </div>
+            </div>
+            <div class="grid-4" style="grid-template-columns:repeat(3,1fr) 1.3fr">
+                <div class="card">
+                    <div class="card-lbl">滾動 DSO（12個月）<span>ROLLING DSO</span></div>
+                    <div class="kpi-val" id="kpi-dso">42.5<span style="font-size:18px;color:var(--muted)">天</span></div>
+                    <div class="kpi-sub">目標: <span style="color:var(--success)">38.0d</span> | 行業均: 45.2d</div>
+                </div>
+                <div class="card">
+                    <div class="card-lbl">加權平均帳齡<span>WEIGHTED AVG AGING</span></div>
+                    <div class="kpi-val" id="kpi-aging" style="color:var(--warning)">28.3<span
+                            style="font-size:18px;color:var(--muted)">天</span></div>
+                    <div class="kpi-sub">較上月 <span class="kpi-badge badge-up">↑ 2.1d</span> 注意老化趨勢</div>
+                </div>
+                <div class="card">
+                    <div class="card-lbl">信用資金成本<span>CREDIT FUND COST</span></div>
+                    <div class="kpi-val sm" id="kpi-cost">$207K</div>
+                    <div class="kpi-sub">年利率 6% | 信用資金成本率 <span style="color:var(--warning)">0.065%</span></div>
+                </div>
+                <!-- Donut Credit Score -->
+                <div class="card">
+                    <div class="card-lbl">信用評分分佈<span>CREDIT SCORING</span></div>
+                    <div class="donut-wrap">
+                        <svg class="donut-svg" width="110" height="110" viewBox="0 0 110 110">
+                            <circle cx="55" cy="55" r="40" fill="none" stroke="rgba(255,255,255,0.05)"
+                                stroke-width="20" />
+                            <!-- Segments: safe 65%, low 20%, mid 10%, high 5% -->
+                            <circle cx="55" cy="55" r="40" fill="none" stroke="var(--success)" stroke-width="20"
+                                stroke-dasharray="163 88" stroke-dashoffset="0" transform="rotate(-90 55 55)" />
+                            <circle cx="55" cy="55" r="40" fill="none" stroke="var(--warning)" stroke-width="20"
+                                stroke-dasharray="50 201" stroke-dashoffset="-163" transform="rotate(-90 55 55)" />
+                            <circle cx="55" cy="55" r="40" fill="none" stroke="var(--danger)" stroke-width="20"
+                                stroke-dasharray="25 226" stroke-dashoffset="-213" transform="rotate(-90 55 55)" />
+                            <circle cx="55" cy="55" r="40" fill="none" stroke="var(--risk4)" stroke-width="20"
+                                stroke-dasharray="13 238" stroke-dashoffset="-238" transform="rotate(-90 55 55)" />
+                            <circle cx="55" cy="55" r="30" fill="var(--card)" />
+                            <text x="55" y="51" text-anchor="middle" font-size="14" font-weight="900"
+                                fill="var(--success)">65%</text>
+                            <text x="55" y="64" text-anchor="middle" font-size="8" fill="var(--muted)">優良A/B</text>
+                        </svg>
+                        <div class="donut-legend">
+                            <div class="donut-leg-item">
+                                <div class="donut-leg-dot" style="background:var(--success)"></div>無/低風險 65%
+                            </div>
+                            <div class="donut-leg-item">
+                                <div class="donut-leg-dot" style="background:var(--warning)"></div>中風險 20%
+                            </div>
+                            <div class="donut-leg-item">
+                                <div class="donut-leg-dot" style="background:var(--danger)"></div>高風險 10%
+                            </div>
+                            <div class="donut-leg-item">
+                                <div class="donut-leg-dot" style="background:var(--risk4)"></div>超高風險 5%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Charts -->
+            <div class="grid-3-1">
+                <div class="card">
+                    <div class="card-lbl">應收餘額 &amp; DSO 趨勢（近6個月）<span>AR BALANCE &amp; DSO TREND – LAST 6 MONTHS</span>
+                    </div>
+                    <div class="chart-wrap">
+                        <canvas id="chart-trend" height="180"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-lbl">壞帳預備率<span>BAD DEBT PROVISION</span></div>
+                    <div class="kpi-val sm" style="color:var(--warning)">1.85%</div>
+                    <div class="kpi-sub" style="margin-bottom:14px">風險評級: <span style="color:var(--warning)">中等
+                            MEDIUM</span></div>
+                    <div style="font-size:11px;color:var(--muted);line-height:1.8">
+                        <div>未逾期 <strong style="float:right;color:var(--text)">0.0%</strong></div>
+                        <div>1-30 天 <strong style="float:right;color:var(--text)">1.0%</strong></div>
+                        <div>31-90 天 <strong style="float:right;color:var(--text)">3.0%</strong></div>
+                        <div>91-365 天 <strong style="float:right;color:var(--text)">5.0%</strong></div>
+                        <div>365天以上 <strong style="float:right;color:var(--danger)">20.0%</strong></div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /tab0 -->
+
+        <!-- ══════════════════════════════════════════
+       TAB 2: 帳齡管控 AGING CONTROL
+  ══════════════════════════════════════════ -->
+        <div class="tab-content" id="tab1">
+            <div class="grid-3-1" style="grid-template-columns:2fr 1fr">
+                <div class="card">
+                    <div class="card-lbl">帳齡結構趨勢（100%堆疊，近6個月）<span>AGING STRUCTURE TREND – STACKED 100%</span></div>
+                    <div class="chart-wrap"><canvas id="chart-aging-stack" height="200"></canvas></div>
+                </div>
+                <div class="card">
+                    <div class="card-lbl">加權平均帳齡<span>WEIGHTED AVG AGING</span></div>
+                    <div class="kpi-val" style="color:var(--warning);font-size:52px">28.3<span
+                            style="font-size:20px;color:var(--muted)">天</span></div>
+                    <div class="kpi-sub" style="margin-bottom:16px">較上月 <span class="kpi-badge badge-up">↑ 2.1d ⚠</span>
+                    </div>
+                    <div style="font-size:11px;color:var(--muted);line-height:2">
+                        <div>逾期總額 <strong style="float:right;color:var(--danger)">$18.4M</strong></div>
+                        <div>逾期率 <strong style="float:right;color:var(--danger)">41.0%</strong></div>
+                        <div>預計壞帳 <strong style="float:right;color:var(--warning)">$830K</strong></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card" style="margin-bottom:16px">
+                <div class="card-lbl">帳齡分類明細<span>AGING BUCKET BREAKDOWN</span></div>
+                <div class="aging-grid">
+                    <div class="aging-card" style="border-top-color:var(--success)">
+                        <div style="font-size:10px;color:var(--muted);letter-spacing:1px">未逾期 / CURRENT</div>
+                        <div class="aging-card-val" style="color:var(--success)">$26.5M</div>
+                        <div class="aging-card-sub">佔比 59.0% | 壞帳率 0%</div>
+                        <div class="aging-bar-bg">
+                            <div class="aging-bar-fill" style="width:59%;background:var(--success)"></div>
+                        </div>
+                    </div>
+                    <div class="aging-card" style="border-top-color:var(--cyan)">
+                        <div style="font-size:10px;color:var(--muted);letter-spacing:1px">1-30天 / 1-30 DAYS</div>
+                        <div class="aging-card-val" style="color:var(--cyan)">$7.8M</div>
+                        <div class="aging-card-sub">佔比 17.4% | 壞帳率 1%</div>
+                        <div class="aging-bar-bg">
+                            <div class="aging-bar-fill" style="width:17%;background:var(--cyan)"></div>
+                        </div>
+                        <div style="font-size:10px;color:var(--muted);margin-top:6px">預計損失: <strong
+                                style="color:var(--text)">$78K</strong></div>
+                    </div>
+                    <div class="aging-card" style="border-top-color:var(--warning)">
+                        <div style="font-size:10px;color:var(--muted);letter-spacing:1px">31-90天 / 31-90 DAYS</div>
+                        <div class="aging-card-val" style="color:var(--warning)">$5.2M</div>
+                        <div class="aging-card-sub">佔比 11.6% | 壞帳率 3%</div>
+                        <div class="aging-bar-bg">
+                            <div class="aging-bar-fill" style="width:12%;background:var(--warning)"></div>
+                        </div>
+                        <div style="font-size:10px;color:var(--muted);margin-top:6px">預計損失: <strong
+                                style="color:var(--warning)">$156K</strong></div>
+                    </div>
+                    <div class="aging-card" style="border-top-color:var(--danger)">
+                        <div style="font-size:10px;color:var(--muted);letter-spacing:1px">91-365天 / 91-365 DAYS</div>
+                        <div class="aging-card-val" style="color:var(--danger)">$4.1M</div>
+                        <div class="aging-card-sub">佔比 9.1% | 壞帳率 5%</div>
+                        <div class="aging-bar-bg">
+                            <div class="aging-bar-fill" style="width:9%;background:var(--danger)"></div>
+                        </div>
+                        <div style="font-size:10px;color:var(--muted);margin-top:6px">預計損失: <strong
+                                style="color:var(--danger)">$205K</strong></div>
+                    </div>
+                    <div class="aging-card" style="border-top-color:#7c1c2e">
+                        <div style="font-size:10px;color:var(--muted);letter-spacing:1px">365天以上 / OVER 1 YEAR</div>
+                        <div class="aging-card-val" style="color:#ff8c9a">$1.3M</div>
+                        <div class="aging-card-sub">佔比 2.9% | 壞帳率 20%</div>
+                        <div class="aging-bar-bg">
+                            <div class="aging-bar-fill" style="width:3%;background:#7c1c2e"></div>
+                        </div>
+                        <div style="font-size:10px;color:var(--muted);margin-top:6px">預計損失: <strong
+                                style="color:var(--danger)">$260K</strong></div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-lbl">帳齡分佈條形圖（各客戶）<span>PER-CLIENT AGING BAR CHART</span></div>
+                <div class="chart-wrap"><canvas id="chart-aging-bar" height="160"></canvas></div>
+            </div>
+        </div><!-- /tab1 -->
+
+        <!-- ══════════════════════════════════════════
+       TAB 3: 風險管控 RISK MGMT
+  ══════════════════════════════════════════ -->
+        <div class="tab-content" id="tab2">
+            <div class="grid-2" style="grid-template-columns:3fr 2fr;margin-bottom:16px">
+                <div class="card">
+                    <div class="card-lbl">客戶風險散點矩陣（懸停查看詳情）<span>CUSTOMER RISK BUBBLE MATRIX – HOVER FOR DETAILS</span>
+                    </div>
+                    <div class="chart-wrap" style="height:340px;position:relative">
+                        <canvas id="chart-bubble" style="width:100%;height:340px"></canvas>
+                        <div
+                            style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--muted)">
+                            ← 加權平均帳齡 Weighted Avg Aging (Days) →</div>
+                        <div
+                            style="position:absolute;left:2px;top:50%;transform:translateY(-50%) rotate(-90deg);font-size:10px;color:var(--muted);white-space:nowrap">
+                            ↑ 應收餘額 AR Balance →</div>
+                    </div>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:10px;color:var(--muted)">
+                        <span>● <span style="color:var(--success)">■</span> 無/低風險</span>
+                        <span>● <span style="color:var(--warning)">■</span> 中風險</span>
+                        <span>● <span style="color:var(--danger)">■</span> 高風險</span>
+                        <span>● <span style="color:var(--risk4)">■</span> 超高風險</span>
+                        <span style="margin-left:auto">泡泡大小 = 預計壞帳損失 Bubble Size = Est. Bad Debt</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-lbl">五級風險分類矩陣<span>5-TIER RISK CLASSIFICATION MATRIX</span></div>
+                    <table class="risk-table">
+                        <thead>
+                            <tr>
+                                <th>風險等級</th>
+                                <th>閾值</th>
+                                <th>客戶數</th>
+                                <th>總額</th>
+                                <th>策略</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="risk-badge"
+                                        style="background:rgba(46,213,115,0.2);color:var(--success)">✅ 無風險</span></td>
+                                <td style="color:var(--muted)">&lt;0.1%</td>
+                                <td>18</td>
+                                <td>$18.5M</td>
+                                <td style="color:var(--success)">提升授信</td>
+                            </tr>
+                            <tr>
+                                <td><span class="risk-badge" style="background:rgba(123,237,159,0.2);color:#7bed9f">✓
+                                        低風險</span></td>
+                                <td style="color:var(--muted)">0.1-0.5%</td>
+                                <td>11</td>
+                                <td>$10.8M</td>
+                                <td style="color:#7bed9f">維持現狀</td>
+                            </tr>
+                            <tr>
+                                <td><span class="risk-badge"
+                                        style="background:rgba(255,165,2,0.2);color:var(--warning)">⚠ 中風險</span></td>
+                                <td style="color:var(--muted)">0.5-1.0%</td>
+                                <td>7</td>
+                                <td>$8.2M</td>
+                                <td style="color:var(--warning)">加強催收</td>
+                            </tr>
+                            <tr>
+                                <td><span class="risk-badge"
+                                        style="background:rgba(255,107,129,0.2);color:var(--risk3)">⚠ 高風險</span></td>
+                                <td style="color:var(--muted)">1.0-2.0%</td>
+                                <td>3</td>
+                                <td>$5.4M</td>
+                                <td style="color:var(--risk3)">立即清收</td>
+                            </tr>
+                            <tr>
+                                <td><span class="risk-badge"
+                                        style="background:rgba(255,71,87,0.2);color:var(--danger)">❌ 超高</span></td>
+                                <td style="color:var(--muted)">≥2.0%</td>
+                                <td>1</td>
+                                <td>$2.0M</td>
+                                <td style="color:var(--danger)">現款結算</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div
+                        style="margin-top:16px;padding:12px;background:rgba(255,215,0,0.05);border:1px solid rgba(255,215,0,0.1);border-radius:12px;font-size:11px;line-height:1.7;color:var(--muted)">
+                        <strong style="color:var(--accent)">💡 動態自我修正機制</strong><br>
+                        信用資金成本率 = 信用資金成本 ÷ 累計營收。客戶持續良好履約時，分母（累計營收）持續增大，風險等級將自動下調，為客戶提供信用修復的激勵路徑。
+                    </div>
+                </div>
+            </div>
+            <!-- Customer Detail Table -->
+            <div class="card">
+                <div class="card-lbl">客戶風險明細表（點擊標題排序）<span>CUSTOMER RISK DETAIL TABLE – CLICK HEADER TO SORT</span>
+                </div>
+                <div style="overflow-x:auto">
+                    <table class="risk-table" id="customer-table" style="min-width:800px">
+                        <thead>
+                            <tr>
+                                <th class="sort-th" onclick="sortTable(0)">客戶名稱 ⇅</th>
+                                <th class="sort-th" onclick="sortTable(1)">應收餘額 ⇅</th>
+                                <th class="sort-th" onclick="sortTable(2)">加權帳齡 ⇅</th>
+                                <th class="sort-th" onclick="sortTable(3)">信用資金成本率 ⇅</th>
+                                <th>風險等級</th>
+                                <th>建議策略</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customer-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div><!-- /tab2 -->
+
+        <!-- ══════════════════════════════════════════
+       TAB 4: 回收決策 COLLECTION
+  ══════════════════════════════════════════ -->
+        <div class="tab-content" id="tab3">
+            <div class="grid-2" style="margin-bottom:16px">
+                <!-- Priority Queue -->
+                <div class="card">
+                    <div class="card-lbl">催收優先序列（緊迫指數 = 壞帳×逾期天數）<span>COLLECTION PRIORITY QUEUE – URGENCY = BAD DEBT ×
+                            OVERDUE DAYS</span></div>
+                    <div id="pq-list"></div>
+                </div>
+                <!-- Gauge + Quick Stats -->
+                <div class="card">
+                    <div class="card-lbl">整體信用資金成本率<span>OVERALL CREDIT FUND COST RATE</span></div>
+                    <div class="gauge-wrap">
+                        <svg class="gauge-svg" width="200" height="130" viewBox="0 0 200 130">
+                            <!-- Track -->
+                            <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="rgba(255,255,255,0.06)"
+                                stroke-width="18" stroke-linecap="round" />
+                            <!-- Color gradient track -->
+                            <path d="M 20 110 A 80 80 0 0 1 70 38" fill="none" stroke="var(--success)" stroke-width="18"
+                                stroke-linecap="round" />
+                            <path d="M 70 38 A 80 80 0 0 1 130 38" fill="none" stroke="var(--warning)" stroke-width="18"
+                                stroke-linecap="round" />
+                            <path d="M 130 38 A 80 80 0 0 1 180 110" fill="none" stroke="var(--danger)"
+                                stroke-width="18" stroke-linecap="round" />
+                            <!-- Needle at 0.065% (≈ low-mid) -->
+                            <line id="gauge-needle" x1="100" y1="110" x2="40" y2="60" stroke="var(--accent)"
+                                stroke-width="3" stroke-linecap="round" />
+                            <circle cx="100" cy="110" r="6" fill="var(--accent)" />
+                            <text x="100" y="98" text-anchor="middle" font-size="20" font-weight="900"
+                                fill="var(--accent)">0.065%</text>
+                            <text x="100" y="115" text-anchor="middle" font-size="9" fill="var(--muted)">CREDIT FUND
+                                COST RATE</text>
+                            <text x="22" y="126" font-size="9" fill="var(--success)">安全</text>
+                            <text x="170" y="126" text-anchor="end" font-size="9" fill="var(--danger)">危險</text>
+                        </svg>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+                        <div style="background:var(--glass2);padding:12px;border-radius:12px;text-align:center">
+                            <div style="font-size:18px;font-weight:800;color:var(--danger)">$830K</div>
+                            <div style="font-size:10px;color:var(--muted);margin-top:2px">預計壞帳損失 EST. BAD DEBT</div>
+                        </div>
+                        <div style="background:var(--glass2);padding:12px;border-radius:12px;text-align:center">
+                            <div style="font-size:18px;font-weight:800;color:var(--warning)">$207K</div>
+                            <div style="font-size:10px;color:var(--muted);margin-top:2px">信用資金成本 CREDIT COST</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Alerts -->
+            <div class="card" style="margin-bottom:16px">
+                <div class="card-lbl">🤖 主動式 AI 風險預警<span>PROACTIVE AI RISK INTELLIGENCE ALERTS</span></div>
+                <div class="alert-grid">
+                    <div class="alert-card" style="background:rgba(255,71,87,0.05);border-color:rgba(255,71,87,0.2)">
+                        <div class="alert-card-title" style="color:var(--danger)">🚨 還款行為微觀漂移 MICRO-DRIFT</div>
+                        <div class="alert-card-body">客戶「環球晶圓」還款週期出現微觀偏離，平均延遲 <strong>4.2 天</strong>。系統預測未來 60 天內違約機率升至
+                            <strong>18%</strong>。建議下調信用額度並加強催收頻率。
+                        </div>
+                    </div>
+                    <div class="alert-card" style="background:rgba(0,212,255,0.05);border-color:rgba(0,212,255,0.2)">
+                        <div class="alert-card-title" style="color:var(--cyan)">⚡ 現金流缺口警告 LIQUIDITY GAP</div>
+                        <div class="alert-card-body">受高風險欠款影響，預計下週一將出現 <strong>$1.2M</strong> 資金缺口。建議啟動緊急資金融通預案並暫緩非必要支出。
+                        </div>
+                    </div>
+                    <div class="alert-card" style="background:rgba(255,165,2,0.05);border-color:rgba(255,165,2,0.2)">
+                        <div class="alert-card-title" style="color:var(--warning)">📈 帳齡老化速率加速 AGING ACCELERATION</div>
+                        <div class="alert-card-body">本月整體加權平均帳齡較上月上升 <strong>2.1 天</strong>，連續 3 個月呈正向漂移。91天以上帳款比例從 8.5%
+                            上升至 <strong>11.5%</strong>。建議立即收緊新客戶授信政策。</div>
+                    </div>
+                    <div class="alert-card" style="background:rgba(168,85,247,0.05);border-color:rgba(168,85,247,0.2)">
+                        <div class="alert-card-title" style="color:var(--purple)">💡 授信資源最佳化建議 CREDIT OPTIMIZATION</div>
+                        <div class="alert-card-body">台積電（無風險）、宏碁（低風險）合計佔總應收
+                            <strong>32%</strong>，信用記錄優異。建議將高風險客戶（三星、環球晶圓）釋放的授信額度，重新配置給這兩家，預計改善整體資金成本率
+                            <strong>0.012%</strong>。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DAX Formula Quick Reference -->
+            <div class="card">
+                <div class="card-lbl">📐 DAX 公式速查（點擊展開）<span>DAX FORMULA QUICK REFERENCE – CLICK TO EXPAND</span></div>
+                <div id="dax-container"></div>
+            </div>
+        </div><!-- /tab3 -->
+
+    </div><!-- /.app -->
+
+    <script>
+        // ═══ DATA ═══
+        const CLIENTS = [
+            { name: '三星電子-行動部門', city: 'kaohsiung', bal: 12.5, aging: 45, rate: 0.025, risk: 'critical', loss: 625, strategy: '現款結算' },
+            { name: '環球晶圓(股)', city: 'hsinchu', bal: 8.2, aging: 38, rate: 0.015, risk: 'high', loss: 246, strategy: '立即清收' },
+            { name: '宏碁資訊服務', city: 'taipei', bal: 4.1, aging: 28, rate: 0.008, risk: 'mid', loss: 82, strategy: '加強催收' },
+            { name: '日月光半導體', city: 'kaohsiung', bal: 6.3, aging: 22, rate: 0.006, risk: 'mid', loss: 94, strategy: '加強催收' },
+            { name: '聯發科技', city: 'hsinchu', bal: 5.8, aging: 18, rate: 0.003, risk: 'low', loss: 29, strategy: '維持現狀' },
+            { name: '台積電', city: 'hsinchu', bal: 9.2, aging: 12, rate: 0.0008, risk: 'safe', loss: 0, strategy: '提升授信' },
+            { name: '華碩電腦', city: 'taipei', bal: 2.8, aging: 8, rate: 0.001, risk: 'safe', loss: 0, strategy: '提升授信' },
+            { name: '鴻海精密', city: 'taipei', bal: 3.4, aging: 25, rate: 0.004, risk: 'low', loss: 17, strategy: '維持現狀' },
+            { name: '廣達電腦', city: 'taichung', bal: 2.1, aging: 32, rate: 0.009, risk: 'mid', loss: 42, strategy: '加強催收' },
+            { name: '仁寶電腦', city: 'taichung', bal: 1.8, aging: 15, rate: 0.002, risk: 'safe', loss: 0, strategy: '提升授信' },
+        ];
+
+        const RISK_COLORS = { safe: '#2ed573', low: '#7bed9f', mid: '#ffa502', high: '#ff6b81', critical: '#ff4757' };
+        const RISK_LABELS = { safe: '✅ 無風險', low: '✓ 低風險', mid: '⚠ 中風險', high: '⚠ 高風險', critical: '❌ 超高風險' };
+        const MONTHS = ['2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02'];
+
+        // ═══ CLOCK ═══
+        function updateClock() {
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            document.getElementById('clock').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            const days = ['日', '一', '二', '三', '四', '五', '六'];
+            document.getElementById('clock-date').textContent = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} 週${days[now.getDay()]}`;
+        }
+        updateClock(); setInterval(updateClock, 1000);
+
+        // ═══ PARTICLES ═══
+        (function () {
+            const c = document.getElementById('particles-bg');
+            for (let i = 0; i < 18; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                const sz = Math.random() * 4 + 2;
+                p.style.cssText = `width:${sz}px;height:${sz}px;left:${Math.random() * 100}%;background:hsl(${Math.random() > 0.5 ? 45 : 195},100%,70%);animation-duration:${8 + Math.random() * 12}s;animation-delay:${Math.random() * -15}s`;
+                c.appendChild(p);
+            }
+        })();
+
+        // ═══ TABS ═══
+        function switchTab(idx, btn) {
+            document.querySelectorAll('.tab-content').forEach((t, i) => t.classList.toggle('active', i === idx));
+            document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', i === idx));
+            setTimeout(() => drawAll(), 50);
+        }
+
+        // ═══ FILTERS ═══
+        let activeRisk = 'all';
+        function toggleRiskFilter(btn, r) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active'); activeRisk = r;
+            renderCustomerTable(); renderPQ();
+        }
+        function applyFilters() { renderCustomerTable(); renderPQ(); }
+        function getFiltered() {
+            const city = document.getElementById('flt-city').value;
+            return CLIENTS.filter(c => {
+                if (city !== 'all' && c.city !== city) return false;
+                if (activeRisk !== 'all' && c.risk !== activeRisk) return false;
+                return true;
+            });
+        }
+
+        // ═══ CANVAS: Trend Chart ═══
+        function drawTrend() {
+            const canvas = document.getElementById('chart-trend');
+            if (!canvas || !canvas.parentElement) return;
+            canvas.width = canvas.parentElement.offsetWidth || 700;
+            const ctx = canvas.getContext('2d'); const W = canvas.width, H = 180;
+            ctx.clearRect(0, 0, W, H);
+            const AR = [38.2, 40.1, 41.8, 43.5, 44.1, 44.92];
+            const DSO = [39.1, 40.5, 41.2, 42.8, 42.3, 42.5];
+            const PAD = { l: 48, r: 20, t: 20, b: 30 };
+            const cW = W - PAD.l - PAD.r, cH = H - PAD.t - PAD.b;
+            // Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) { const y = PAD.t + cH * i / 4; ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(W - PAD.r, y); ctx.stroke(); }
+            // AR line
+            const drawLine = (data, color, label, minV, maxV, yOff) => {
+                const pts = data.map((v, i) => ({ x: PAD.l + i * cW / (data.length - 1), y: PAD.t + cH - (v - minV) / (maxV - minV) * cH }));
+                // Fill
+                ctx.beginPath(); ctx.moveTo(pts[0].x, PAD.t + cH);
+                pts.forEach(p => ctx.lineTo(p.x, p.y)); ctx.lineTo(pts[pts.length - 1].x, PAD.t + cH); ctx.closePath();
+                const g = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + cH);
+                g.addColorStop(0, color + '44'); g.addColorStop(1, color + '00');
+                ctx.fillStyle = g; ctx.fill();
+                // Line
+                ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+                pts.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
+                // Dots
+                pts.forEach(p => { ctx.beginPath(); ctx.fillStyle = color; ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill(); });
+            };
+            drawLine(AR, '#ffd700', 'AR Balance', 34, 48);
+            drawLine(DSO, '#00d4ff', 'DSO', 36, 46);
+            // X labels
+            ctx.fillStyle = 'rgba(240,240,248,0.4)'; ctx.font = '10px Inter,sans-serif'; ctx.textAlign = 'center';
+            MONTHS.forEach((m, i) => { const x = PAD.l + i * cW / (MONTHS.length - 1); ctx.fillText(m.slice(5), x, H - 6); });
+            // Legend
+            ctx.textAlign = 'left'; ctx.font = 'bold 10px Inter,sans-serif';
+            ctx.fillStyle = '#ffd700'; ctx.fillText('● 應收餘額 AR Balance ($M)', PAD.l, PAD.t - 4);
+            ctx.fillStyle = '#00d4ff'; ctx.fillText('● DSO (天)', PAD.l + 160, PAD.t - 4);
+        }
+
+        // ═══ CANVAS: Aging Stacked 100% ═══
+        function drawAgingStack() {
+            const canvas = document.getElementById('chart-aging-stack');
+            if (!canvas || !canvas.parentElement) return;
+            canvas.width = canvas.parentElement.offsetWidth - 48;
+            const ctx = canvas.getContext('2d'); const W = canvas.width, H = 200;
+            ctx.clearRect(0, 0, W, H);
+            // Simulate 6 months of aging %
+            const data = [
+                [62, 18, 12, 6, 2], [61, 18, 12, 7, 2], [60, 17, 13, 7, 3], [59, 17, 13, 8, 3], [58, 18, 13, 8, 3], [59, 17, 12, 9, 3]
+            ];
+            const colors = ['#2ed573', '#00d4ff', '#ffa502', '#ff4757', '#7c1c2e'];
+            const PAD = { l: 36, r: 12, t: 20, b: 28 };
+            const cW = W - PAD.l - PAD.r, cH = H - PAD.t - PAD.b;
+            const bw = cW / ((data.length) * 1.4), gap = (cW - bw * data.length) / (data.length + 1);
+            data.forEach((month, i) => {
+                let y = PAD.t + cH;
+                month.forEach((pct, j) => {
+                    const bh = cH * pct / 100;
+                    ctx.fillStyle = colors[j];
+                    ctx.beginPath();
+                    if (j === 0) ctx.roundRect(PAD.l + gap + (bw + gap) * i, y - bh, bw, bh, j === 4 ? [0, 0, 4, 4] : [0]);
+                    else ctx.rect(PAD.l + gap + (bw + gap) * i, y - bh, bw, bh);
+                    ctx.fill();
+                    if (pct > 5) {
+                        ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.textAlign = 'center';
+                        ctx.fillText(pct + '%', PAD.l + gap + (bw + gap) * i + bw / 2, y - bh / 2 + 3);
+                    }
+                    y -= bh;
+                });
+                ctx.fillStyle = 'rgba(240,240,248,0.4)'; ctx.font = '9px Inter,sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText(MONTHS[i].slice(5), PAD.l + gap + (bw + gap) * i + bw / 2, H - 8);
+            });
+            // Y labels
+            ctx.fillStyle = 'rgba(240,240,248,0.35)'; ctx.font = '9px Inter,sans-serif'; ctx.textAlign = 'right';
+            for (let v = 0; v <= 100; v += 25) ctx.fillText(v + '%', PAD.l - 4, PAD.t + cH - cH * v / 100 + 3);
+        }
+
+        // ═══ CANVAS: Aging Bar per client ═══
+        function drawAgingBar() {
+            const canvas = document.getElementById('chart-aging-bar');
+            if (!canvas || !canvas.parentElement) return;
+            canvas.width = canvas.parentElement.offsetWidth - 48;
+            const ctx = canvas.getContext('2d'); const W = canvas.width, H = 160;
+            ctx.clearRect(0, 0, W, H);
+            const clients = CLIENTS.slice(0, 8);
+            const maxBal = Math.max(...clients.map(c => c.bal)) * 1.1;
+            const PAD = { l: 120, r: 16, t: 10, b: 10 };
+            const cW = W - PAD.l - PAD.r, cH = H - PAD.t - PAD.b;
+            const bh = Math.floor(cH / clients.length) - 4;
+            clients.forEach((c, i) => {
+                const y = PAD.t + i * (bh + 4);
+                const bw = cW * c.bal / maxBal;
+                ctx.fillStyle = RISK_COLORS[c.risk] + '30';
+                ctx.beginPath(); ctx.roundRect(PAD.l, y, cW, bh, 4); ctx.fill();
+                ctx.fillStyle = RISK_COLORS[c.risk];
+                ctx.beginPath(); ctx.roundRect(PAD.l, y, bw, bh, 4); ctx.fill();
+                ctx.fillStyle = 'rgba(240,240,248,0.7)'; ctx.font = '10px Inter,sans-serif'; ctx.textAlign = 'right';
+                ctx.fillText(c.name.length > 8 ? c.name.slice(0, 8) + '…' : c.name, PAD.l - 6, y + bh / 2 + 3);
+                ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.textAlign = 'left';
+                ctx.fillText('$' + c.bal + 'M | ' + c.aging + 'd', PAD.l + 6, y + bh / 2 + 3);
+            });
+        }
+
+        // ═══ CANVAS: Bubble Chart ═══
+        let bubbleData = [];
+        function drawBubble() {
+            const canvas = document.getElementById('chart-bubble');
+            if (!canvas || !canvas.parentElement) return;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width || 620; canvas.height = 340;
+            const ctx = canvas.getContext('2d'); const W = canvas.width, H = canvas.height;
+            ctx.clearRect(0, 0, W, H);
+            const PAD = { l: 50, r: 20, t: 20, b: 40 };
+            const cW = W - PAD.l - PAD.r, cH = H - PAD.t - PAD.b;
+            const maxAging = Math.max(...CLIENTS.map(c => c.aging)) * 1.2;
+            const maxBal = Math.max(...CLIENTS.map(c => c.bal)) * 1.2;
+            // Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.04)'; ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const x = PAD.l + cW * i / 4; ctx.beginPath(); ctx.moveTo(x, PAD.t); ctx.lineTo(x, PAD.t + cH); ctx.stroke();
+                const y = PAD.t + cH * i / 4; ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(PAD.l + cW, y); ctx.stroke();
+            }
+            // Axes labels
+            ctx.fillStyle = 'rgba(240,240,248,0.35)'; ctx.font = '9px Inter,sans-serif';
+            for (let i = 0; i <= 4; i++) {
+                ctx.textAlign = 'right'; ctx.fillText(Math.round(maxBal * (4 - i) / 4) + 'M', PAD.l - 4, PAD.t + cH * i / 4 + 3);
+                ctx.textAlign = 'center'; ctx.fillText(Math.round(maxAging * i / 4) + 'd', PAD.l + cW * i / 4, PAD.t + cH + 14);
+            }
+            bubbleData = [];
+            CLIENTS.forEach(c => {
+                const x = PAD.l + c.aging / maxAging * cW;
+                const y = PAD.t + cH - (c.bal / maxBal) * cH;
+                const r = 8 + Math.sqrt(c.loss) * 0.7;
+                const col = RISK_COLORS[c.risk];
+                bubbleData.push({ x, y, r, c });
+                // Glow
+                const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+                g.addColorStop(0, col + '99'); g.addColorStop(1, col + '22');
+                ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r + 4, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = col; ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 1.5;
+                ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.font = 'bold 8px Inter,sans-serif'; ctx.textAlign = 'center';
+                const lbl = c.name.split(/[(-]/)[0].trim().slice(0, 4);
+                ctx.fillText(lbl, x, y + 3);
+            });
+            // Tooltip listener
+            canvas.onmousemove = function (e) {
+                const rct = canvas.getBoundingClientRect();
+                const mx = e.clientX - rct.left, my = e.clientY - rct.top;
+                const tip = document.getElementById('tooltip');
+                const hit = bubbleData.find(b => Math.hypot(b.x - mx, b.y - my) < b.r + 6);
+                if (hit) {
+                    tip.innerHTML = `<strong>${hit.c.name}</strong>應收餘額: $${hit.c.bal}M<br>加權帳齡: ${hit.c.aging}天<br>信用資金成本率: ${(hit.c.rate * 100).toFixed(3)}%<br>風險等級: ${RISK_LABELS[hit.c.risk]}<br>策略: ${hit.c.strategy}`;
+                    tip.style.display = 'block'; tip.style.left = (e.clientX + 14) + 'px'; tip.style.top = (e.clientY - 10) + 'px';
+                } else { tip.style.display = 'none'; }
+            };
+            canvas.onmouseleave = () => { document.getElementById('tooltip').style.display = 'none'; };
+        }
+
+        // ═══ Customer Table ═══
+        function renderCustomerTable() {
+            const tbody = document.getElementById('customer-tbody'); if (!tbody) return;
+            const clients = getFiltered();
+            tbody.innerHTML = clients.sort((a, b) => b.rate - a.rate).map(c => `
+    <tr>
+      <td style="font-weight:700">${c.name}</td>
+      <td>$${c.bal}M</td>
+      <td style="color:${c.aging > 30 ? 'var(--warning)' : 'var(--text)'}">${c.aging}天</td>
+      <td style="color:${RISK_COLORS[c.risk]}">${(c.rate * 100).toFixed(3)}%</td>
+      <td><span class="risk-badge" style="background:${RISK_COLORS[c.risk]}30;color:${RISK_COLORS[c.risk]}">${RISK_LABELS[c.risk]}</span></td>
+      <td style="color:${RISK_COLORS[c.risk]};font-weight:700">${c.strategy}</td>
+    </tr>`).join('');
+        }
+
+        // ═══ Sort Table ═══
+        let sortDir = 1;
+        function sortTable(col) {
+            const keys = ['name', 'bal', 'aging', 'rate'];
+            const k = keys[col];
+            CLIENTS.sort((a, b) => { const v = k === 'name' ? a[k].localeCompare(b[k]) : (b[k] - a[k]); return v * sortDir; });
+            sortDir *= -1; renderCustomerTable();
+        }
+
+        // ═══ Priority Queue ═══
+        function renderPQ() {
+            const el = document.getElementById('pq-list'); if (!el) return;
+            const clients = getFiltered().map(c => ({ ...c, urgency: c.loss * c.aging })).sort((a, b) => b.urgency - a.urgency);
+            el.innerHTML = clients.slice(0, 6).map((c, i) => {
+                const borderColor = RISK_COLORS[c.risk];
+                const tagBg = c.risk === 'critical' ? 'var(--danger)' : c.risk === 'high' ? 'var(--risk3)' : c.risk === 'mid' ? 'var(--warning)' : 'var(--success)';
+                const tagLabel = c.risk === 'critical' ? 'URGENT' : c.risk === 'high' ? 'ACTION' : c.risk === 'mid' ? 'WATCH' : 'NORMAL';
+                return `<div class="pq-item" style="border-left-color:${borderColor}">
+      <div class="pq-rank" style="color:${borderColor}">${i + 1}</div>
+      <div class="pq-info">
+        <div class="pq-name">${c.name}</div>
+        <div class="pq-meta">$${c.bal}M | 帳齡 ${c.aging}天 | 信用成本率 ${(c.rate * 100).toFixed(3)}%</div>
+      </div>
+      <div class="pq-tag" style="background:${tagBg}30;color:${tagBg}">${tagLabel}</div>
+      <div class="pq-urgency" style="color:${borderColor}">${c.urgency.toFixed(0)}</div>
+    </div>`;
+            }).join('');
+        }
+
+        // ═══ DAX Formulas ═══
+        const DAX_FORMULAS = [
+            {
+                title: '公式01 期末應收餘額 [規模指標]',
+                code: `期末應收餘額 =
+CALCULATE(
+    SUM('應收表'[發票金額]) - SUM('實收表'[收款金額]),
+    FILTER(ALL('日期表'), '日期表'[Date] <= MAX('日期表'[Date]))
+)`,
+                desc: '核心基礎指標。CALCULATE + FILTER(ALL) 實現時間截止邏輯，計算截至所選日期的未收餘額。'
+            },
+            {
+                title: '公式03 加權平均帳齡 [帳齡指標]',
+                code: `加權平均帳齡 =
+VAR TotalReceivables = [應收餘額，期末]
+VAR WeightedSum =
+    SUMX(VALUES('發票資訊'[發票編號]),
+         [應收餘額，期末] * [單筆訂單帳齡])
+RETURN DIVIDE(WeightedSum, TotalReceivables)`,
+                desc: 'SUMX 迭代計算：以每張發票餘額為權重計算平均帳齡。比 MAX 更能反映資金佔壓的真實程度。'
+            },
+            {
+                title: '公式07 信用資金成本 [成本指標]',
+                code: `信用資金成本 =
+[期末應收餘額] * [加權平均帳齡] * (0.06 / 365)`,
+                desc: '量化應收帳款的機會成本：餘額 × 加權帳齡 × 日利率。同時涵蓋金額與時間兩個風險維度。'
+            },
+            {
+                title: '公式08 信用資金成本率（核心旗艦指標）[成本指標]',
+                code: `信用資金成本率 =
+DIVIDE(
+    [信用資金成本],
+    CALCULATE(SUM('銷售表'[銷售金額]),
+              FILTER(ALL('日期表'), '日期表'[Date] <= MAX('日期表'[Date])))
+)`,
+                desc: '終極風險量化：頻率×金額×時間三維風險完整映射。動態自我修正：客戶良好履約後比率自動下降。'
+            },
+            {
+                title: '公式09 風險等級分類 [風險指標]',
+                code: `風險等級 =
+SWITCH(TRUE(),
+    [信用資金成本率] < 0.001, "無風險",
+    [信用資金成本率] < 0.005, "低風險",
+    [信用資金成本率] < 0.010, "中風險",
+    [信用資金成本率] < 0.020, "高風險",
+    "超高風險"
+)`,
+                desc: 'SWITCH(TRUE()) 模式：五級動態風險分類。從第一個成立條件返回，是 DAX 多條件分支最佳實踐。'
+            },
+            {
+                title: '公式11 應收帳款周轉天數 DSO [效率指標]',
+                code: `應收帳款周轉天數 =
+DIVIDE(
+    [期末應收餘額] * 365,
+    CALCULATE(SUM('實收表'[收款金額]),
+              DATESINPERIOD('日期表'[Date], LASTDATE('日期表'[Date]), -12, MONTH))
+)`,
+                desc: 'DSO 越低代表資金回收效率越高。分母用現金實收（非銷售收入），才能真正衡量資金回收速度。'
+            },
+        ];
+
+        function renderDAX() {
+            const c = document.getElementById('dax-container'); if (!c) return;
+            c.innerHTML = DAX_FORMULAS.map((f, i) => `
+    <div class="dax-panel">
+      <div class="dax-header" onclick="toggleDAX(this)">
+        <span class="dax-title">${f.title}</span>
+        <span class="dax-arrow">▼</span>
+      </div>
+      <div class="dax-body">
+        <div class="dax-code">${f.code.replace(/</g, '&lt;')}</div>
+        <div class="dax-desc">💡 ${f.desc}</div>
+      </div>
+    </div>`).join('');
+        }
+
+        function toggleDAX(header) {
+            const body = header.nextElementSibling;
+            const arrow = header.querySelector('.dax-arrow');
+            const isOpen = body.classList.toggle('open');
+            arrow.style.transform = isOpen ? 'rotate(180deg)' : 'rotate(0deg)';
+        }
+
+        // ═══ Draw All Visible Charts ═══
+        function drawAll() {
+            drawTrend(); drawAgingStack(); drawAgingBar(); drawBubble();
+            renderCustomerTable(); renderPQ(); renderDAX();
+        }
+
+        // ═══ Init ═══
+        window.addEventListener('load', () => {
+            drawAll();
+            window.addEventListener('resize', () => { clearTimeout(window._rt); window._rt = setTimeout(drawAll, 150); });
+        });
+
+        // ══════════════════════════════════════════════════════════════════
+        // ═══ 資料匯入引擎 (Excel Import Engine) ═══════════════════════════
+        // ══════════════════════════════════════════════════════════════════
+
+        // 預設資料備份（用於還原）
+        const DEFAULT_CLIENTS = JSON.parse(JSON.stringify(CLIENTS));
+        const DEFAULT_MONTHS = [...MONTHS];
+        let TREND_AR = [38.2, 40.1, 41.8, 43.5, 44.1, 44.92];
+        let TREND_DSO = [39.1, 40.5, 41.2, 42.8, 42.3, 42.5];
+        let AGING_STACK_DATA = [
+            [62, 18, 12, 6, 2], [61, 18, 12, 7, 2], [60, 17, 13, 7, 3], [59, 17, 13, 8, 3], [58, 18, 13, 8, 3], [59, 17, 12, 9, 3]
+        ];
+        let AGING_BUCKETS = [
+            { label: '未逾期 / CURRENT', amount: 26.5, pct: 59.0, badRate: 0.0, loss: 0, color: 'var(--success)' },
+            { label: '1-30天 / 1-30 DAYS', amount: 7.8, pct: 17.4, badRate: 1.0, loss: 78, color: 'var(--cyan)' },
+            { label: '31-90天 / 31-90 DAYS', amount: 5.2, pct: 11.6, badRate: 3.0, loss: 156, color: 'var(--warning)' },
+            { label: '91-365天 / 91-365 DAYS', amount: 4.1, pct: 9.1, badRate: 5.0, loss: 205, color: 'var(--danger)' },
+            { label: '365天以上 / OVER 1Y', amount: 1.3, pct: 2.9, badRate: 20.0, loss: 260, color: '#ff8c9a' },
+        ];
+        let GLOBAL_PARAMS = {
+            revenue: 318.5, rate: 0.06, targetDSO: 38.0, targetARRatio: 0.12,
+            badDebtRate: 0.0185, industryDSO: 45.2, period: '2026-02'
+        };
+
+        // 顯示匯入狀態訊息
+        function showImportStatus(msg, type) {
+            const el = document.getElementById('import-status');
+            el.className = 'import-status ' + type;
+            el.textContent = (type === 'success' ? '✅ ' : '❌ ') + msg;
+            clearTimeout(el._t);
+            el._t = setTimeout(() => { el.style.display = 'none'; el.className = 'import-status'; }, 6000);
+        }
+
+        // 讀取 Excel 工作表為物件陣列
+        function sheetToObjects(workbook, sheetName) {
+            const ws = workbook.Sheets[sheetName];
+            if (!ws) return null;
+            // 跳過第 1 列（標題）從第 2 列（表頭）開始；header:1 回傳陣列，range 從第 2 列
+            return XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+        }
+
+        // 主要匯入處理函式
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            if (!window.XLSX) {
+                showImportStatus('SheetJS 函式庫尚未載入，請檢查網路連線', 'error');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    parseImportedData(workbook);
+                } catch (err) {
+                    showImportStatus('解析失敗：' + err.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            // 重置 input 以允許再次選取同一檔案
+            event.target.value = '';
+        }
+
+        // 解析匯入資料
+        function parseImportedData(workbook) {
+            const errors = [];
+            let importedCount = 0;
+
+            // ── 1. 客戶資料 ──────────────────────────────────────────────
+            const raw1 = sheetToObjects(workbook, '客戶資料');
+            if (raw1) {
+                // raw1[0] = 標題列, raw1[1] = 表頭列, raw1[2+] = 資料
+                const newClients = [];
+                for (let i = 2; i < raw1.length; i++) {
+                    const r = raw1[i];
+                    if (!r[0] || String(r[0]).startsWith('【')) continue; // 跳過備註列
+                    const name = String(r[0]).trim();
+                    const city = String(r[1] || 'taipei').trim().toLowerCase();
+                    const bal = parseFloat(r[2]) || 0;
+                    const aging = parseFloat(r[3]) || 0;
+                    const rate = parseFloat(r[4]) || 0;
+                    const risk = String(r[5] || 'safe').trim().toLowerCase();
+                    const loss = parseFloat(r[6]) || 0;
+                    const strategy = String(r[7] || '維持現狀').trim();
+                    if (name) newClients.push({ name, city, bal, aging, rate, risk, loss, strategy });
+                }
+                if (newClients.length > 0) {
+                    CLIENTS.length = 0;
+                    newClients.forEach(c => CLIENTS.push(c));
+                    importedCount++;
+                } else errors.push('客戶資料：無有效資料列');
+            } else errors.push('找不到「客戶資料」工作表');
+
+            // ── 2. 月趨勢 ─────────────────────────────────────────────────
+            const raw2 = sheetToObjects(workbook, '月趨勢');
+            if (raw2) {
+                const months = [], ar = [], dso = [];
+                for (let i = 2; i < raw2.length; i++) {
+                    const r = raw2[i];
+                    if (!r[0] || String(r[0]).startsWith('【')) continue;
+                    months.push(String(r[0]).trim());
+                    ar.push(parseFloat(r[1]) || 0);
+                    dso.push(parseFloat(r[2]) || 0);
+                }
+                if (months.length >= 2) {
+                    MONTHS.length = 0; months.forEach(m => MONTHS.push(m));
+                    TREND_AR = ar; TREND_DSO = dso;
+                    importedCount++;
+                } else errors.push('月趨勢：需至少 2 個月資料');
+            } else errors.push('找不到「月趨勢」工作表');
+
+            // ── 3. 帳齡結構 ───────────────────────────────────────────────
+            const raw3 = sheetToObjects(workbook, '帳齡結構');
+            if (raw3) {
+                const newStack = [];
+                for (let i = 2; i < raw3.length; i++) {
+                    const r = raw3[i];
+                    if (!r[0] || String(r[0]).startsWith('【')) continue;
+                    const row = [parseFloat(r[1]) || 0, parseFloat(r[2]) || 0, parseFloat(r[3]) || 0, parseFloat(r[4]) || 0, parseFloat(r[5]) || 0];
+                    newStack.push(row);
+                }
+                if (newStack.length > 0) { AGING_STACK_DATA = newStack; importedCount++; }
+                else errors.push('帳齡結構：無有效資料');
+            }
+
+            // ── 4. 帳齡明細 ───────────────────────────────────────────────
+            const raw4 = sheetToObjects(workbook, '帳齡明細');
+            if (raw4) {
+                const newBuckets = [];
+                const bColors = ['var(--success)', 'var(--cyan)', 'var(--warning)', 'var(--danger)', '#ff8c9a'];
+                for (let i = 2; i < raw4.length; i++) {
+                    const r = raw4[i];
+                    if (!r[0] || String(r[0]).startsWith('【')) continue;
+                    newBuckets.push({
+                        label: String(r[0]).trim(),
+                        amount: parseFloat(r[1]) || 0,
+                        pct: parseFloat(r[2]) || 0,
+                        badRate: parseFloat(r[3]) || 0,
+                        loss: parseFloat(r[4]) || 0,
+                        color: bColors[newBuckets.length] || 'var(--muted)'
+                    });
+                    if (newBuckets.length >= 5) break; // 最多 5 個區間
+                }
+                if (newBuckets.length > 0) { AGING_BUCKETS = newBuckets; importedCount++; }
+            }
+
+            // ── 5. 總覽參數 ───────────────────────────────────────────────
+            const raw5 = sheetToObjects(workbook, '總覽參數');
+            if (raw5) {
+                const paramMap = {};
+                for (let i = 2; i < raw5.length; i++) {
+                    const r = raw5[i];
+                    if (!r[0]) continue;
+                    const key = String(r[0]).trim();
+                    paramMap[key] = r[1];
+                }
+                if (paramMap['累計營收 (M)'] !== undefined) GLOBAL_PARAMS.revenue = parseFloat(paramMap['累計營收 (M)']);
+                if (paramMap['年化利率'] !== undefined) GLOBAL_PARAMS.rate = parseFloat(paramMap['年化利率']);
+                if (paramMap['目標 DSO（天）'] !== undefined) GLOBAL_PARAMS.targetDSO = parseFloat(paramMap['目標 DSO（天）']);
+                if (paramMap['目標 AR 比率'] !== undefined) GLOBAL_PARAMS.targetARRatio = parseFloat(paramMap['目標 AR 比率']);
+                if (paramMap['壞帳預備率'] !== undefined) GLOBAL_PARAMS.badDebtRate = parseFloat(paramMap['壞帳預備率']);
+                if (paramMap['行業平均 DSO'] !== undefined) GLOBAL_PARAMS.industryDSO = parseFloat(paramMap['行業平均 DSO']);
+                if (paramMap['資料截止月份'] !== undefined) GLOBAL_PARAMS.period = String(paramMap['資料截止月份']).trim();
+                importedCount++;
+            }
+
+            // ── 6. 刷新看板 ───────────────────────────────────────────────
+            if (importedCount > 0) {
+                refreshDashboard();
+                const msg = `成功匯入 ${importedCount} 個工作表，${CLIENTS.length} 筆客戶` +
+                    (errors.length > 0 ? `（警告：${errors.join('；')}）` : '');
+                showImportStatus(msg, 'success');
+            } else {
+                showImportStatus('匯入失敗：' + errors.join('；'), 'error');
+            }
+        }
+
+        // ═══ 全域看板刷新 ═══
+        function refreshDashboard() {
+            // ① 更新城市篩選器選項（根據新客戶清單動態生成）
+            const citySelect = document.getElementById('flt-city');
+            const cities = [...new Set(CLIENTS.map(c => c.city))];
+            const cityLabels = { taipei: '台北 Taipei', hsinchu: '新竹 Hsinchu', taichung: '台中 Taichung', kaohsiung: '高雄 Kaohsiung' };
+            citySelect.innerHTML = '<option value="all">全部城市 ALL CITIES</option>' +
+                cities.map(c => `<option value="${c}">${cityLabels[c] || c}</option>`).join('');
+
+            // ② 計算衍生 KPI
+            const totalAR = CLIENTS.reduce((s, c) => s + c.bal, 0);
+            const totalLoss = CLIENTS.reduce((s, c) => s + c.loss, 0);
+            const overdueCount = CLIENTS.filter(c => c.aging > 30).length;
+            const highRiskCount = CLIENTS.filter(c => c.risk === 'high' || c.risk === 'critical').length;
+            const lastAR = TREND_AR[TREND_AR.length - 1] || totalAR;
+            const lastDSO = TREND_DSO[TREND_DSO.length - 1] || 42.5;
+            const weightedAging = CLIENTS.reduce((s, c) => s + c.aging * c.bal, 0) / (totalAR || 1);
+            const arRatio = totalAR / (GLOBAL_PARAMS.revenue || 1);
+            const arTurnover = (GLOBAL_PARAMS.revenue / ((lastAR * GLOBAL_PARAMS.rate) || 1)).toFixed(1);
+            const creditCost = lastAR * weightedAging * (GLOBAL_PARAMS.rate / 365);
+            const creditCostRate = creditCost / (GLOBAL_PARAMS.revenue || 1);
+
+            // ③ 更新 Header 統計
+            const el = (id) => document.getElementById(id);
+            if (el('hdr-total')) el('hdr-total').textContent = '$' + lastAR.toFixed(2) + 'M';
+            if (el('hdr-overdue')) el('hdr-overdue').textContent = overdueCount;
+            if (el('hdr-highrisk')) el('hdr-highrisk').textContent = highRiskCount;
+
+            // ④ 更新 Tab1 KPI 卡片
+            if (el('kpi-ar')) el('kpi-ar').textContent = '$' + lastAR.toFixed(2) + 'M';
+            if (el('kpi-rev')) el('kpi-rev').textContent = '$' + GLOBAL_PARAMS.revenue.toFixed(1) + 'M';
+            if (el('kpi-ratio')) el('kpi-ratio').textContent = (arRatio * 100).toFixed(1) + '%';
+            if (el('kpi-turn')) el('kpi-turn').textContent = arTurnover + 'x';
+            if (el('kpi-dso')) el('kpi-dso').innerHTML = lastDSO.toFixed(1) + '<span style="font-size:18px;color:var(--muted)">天</span>';
+            if (el('kpi-aging')) el('kpi-aging').innerHTML = weightedAging.toFixed(1) + '<span style="font-size:18px;color:var(--muted)">天</span>';
+            if (el('kpi-cost')) el('kpi-cost').textContent = '$' + (creditCost * 1000).toFixed(0) + 'K';
+
+            // ⑤ 更新帳齡明細卡片
+            updateAgingBucketCards();
+
+            // ⑥ 重繪所有圖表
+            drawAll();
+        }
+
+        // ═══ 更新帳齡明細卡片（動態 HTML） ═══
+        function updateAgingBucketCards() {
+            const grid = document.querySelector('.aging-grid');
+            if (!grid || !AGING_BUCKETS.length) return;
+            grid.innerHTML = AGING_BUCKETS.map(b => `
+                <div class="aging-card" style="border-top-color:${b.color}">
+                    <div style="font-size:10px;color:var(--muted);letter-spacing:1px">${b.label}</div>
+                    <div class="aging-card-val" style="color:${b.color}">$${b.amount}M</div>
+                    <div class="aging-card-sub">佔比 ${b.pct}% | 壞帳率 ${b.badRate}%</div>
+                    <div class="aging-bar-bg"><div class="aging-bar-fill" style="width:${Math.min(b.pct, 100)}%;background:${b.color}"></div></div>
+                    ${b.loss > 0 ? `<div style="font-size:10px;color:var(--muted);margin-top:6px">預計損失: <strong style="color:${b.color}">$${b.loss}K</strong></div>` : ''}
+                </div>`).join('');
+        }
+
+        // ═══ 覆寫 drawTrend 以使用動態資料 ═══
+        const _origDrawTrend = drawTrend;
+        drawTrend = function () {
+            const canvas = document.getElementById('chart-trend');
+            if (!canvas || !canvas.parentElement) return;
+            canvas.width = canvas.parentElement.offsetWidth || 700;
+            const ctx = canvas.getContext('2d'); const W = canvas.width, H = 180;
+            ctx.clearRect(0, 0, W, H);
+            const AR_D = TREND_AR;
+            const DSO_D = TREND_DSO;
+            const PAD = { l: 48, r: 20, t: 20, b: 30 };
+            const cW = W - PAD.l - PAD.r, cH = H - PAD.t - PAD.b;
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) { const y = PAD.t + cH * i / 4; ctx.beginPath(); ctx.moveTo(PAD.l, y); ctx.lineTo(W - PAD.r, y); ctx.stroke(); }
+            const drawLine = (data, color, minV, maxV) => {
+                if (!data.length) return;
+                const pts = data.map((v, i) => ({ x: PAD.l + i * cW / (data.length - 1 || 1), y: PAD.t + cH - (v - minV) / (maxV - minV || 1) * cH }));
+                ctx.beginPath(); ctx.moveTo(pts[0].x, PAD.t + cH);
+                pts.forEach(p => ctx.lineTo(p.x, p.y)); ctx.lineTo(pts[pts.length - 1].x, PAD.t + cH); ctx.closePath();
+                const g = ctx.createLinearGradient(0, PAD.t, 0, PAD.t + cH); g.addColorStop(0, color + '44'); g.addColorStop(1, color + '00');
+                ctx.fillStyle = g; ctx.fill();
+                ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+                pts.forEach((p, i) => i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)); ctx.stroke();
+                pts.forEach(p => { ctx.beginPath(); ctx.fillStyle = color; ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill(); });
+            };
+            const minAR = Math.min(...AR_D) * 0.95, maxAR = Math.max(...AR_D) * 1.05;
+            const minDSO = Math.min(...DSO_D) * 0.95, maxDSO = Math.max(...DSO_D) * 1.05;
+            drawLine(AR_D, '#ffd700', minAR, maxAR);
+            drawLine(DSO_D, '#00d4ff', minDSO, maxDSO);
+            ctx.fillStyle = 'rgba(240,240,248,0.4)'; ctx.font = '10px Inter,sans-serif'; ctx.textAlign = 'center';
+            MONTHS.forEach((m, i) => { const x = PAD.l + i * cW / (MONTHS.length - 1 || 1); ctx.fillText(m.slice(5), x, H - 6); });
+            ctx.textAlign = 'left'; ctx.font = 'bold 10px Inter,sans-serif';
+            ctx.fillStyle = '#ffd700'; ctx.fillText('● 應收餘額 AR Balance ($M)', PAD.l, PAD.t - 4);
+            ctx.fillStyle = '#00d4ff'; ctx.fillText('● DSO (天)', PAD.l + 160, PAD.t - 4);
+        };
+
+        // ═══ 覆寫 drawAgingStack 以使用動態資料 ═══
+        const _origDrawAgingStack = drawAgingStack;
+        drawAgingStack = function () {
+            const canvas = document.getElementById('chart-aging-stack');
+            if (!canvas || !canvas.parentElement) return;
+            canvas.width = canvas.parentElement.offsetWidth - 48;
+            const ctx = canvas.getContext('2d'); const W = canvas.width, H = 200;
+            ctx.clearRect(0, 0, W, H);
+            const data = AGING_STACK_DATA;
+            const colors = ['#2ed573', '#00d4ff', '#ffa502', '#ff4757', '#7c1c2e'];
+            const PAD = { l: 36, r: 12, t: 20, b: 28 };
+            const cW = W - PAD.l - PAD.r, cH = H - PAD.t - PAD.b;
+            const bw = cW / (data.length * 1.4);
+            const gap = (cW - bw * data.length) / (data.length + 1);
+            data.forEach((month, i) => {
+                let y = PAD.t + cH;
+                month.forEach((pct, j) => {
+                    const bh = cH * pct / 100;
+                    ctx.fillStyle = colors[j];
+                    ctx.beginPath();
+                    if (j === 0) ctx.roundRect(PAD.l + gap + (bw + gap) * i, y - bh, bw, bh, [0]);
+                    else ctx.rect(PAD.l + gap + (bw + gap) * i, y - bh, bw, bh);
+                    ctx.fill();
+                    if (pct > 5) {
+                        ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.font = 'bold 9px Inter,sans-serif'; ctx.textAlign = 'center';
+                        ctx.fillText(pct + '%', PAD.l + gap + (bw + gap) * i + bw / 2, y - bh / 2 + 3);
+                    }
+                    y -= bh;
+                });
+                ctx.fillStyle = 'rgba(240,240,248,0.4)'; ctx.font = '9px Inter,sans-serif'; ctx.textAlign = 'center';
+                ctx.fillText(MONTHS[i] ? MONTHS[i].slice(5) : '', PAD.l + gap + (bw + gap) * i + bw / 2, H - 8);
+            });
+            ctx.fillStyle = 'rgba(240,240,248,0.35)'; ctx.font = '9px Inter,sans-serif'; ctx.textAlign = 'right';
+            for (let v = 0; v <= 100; v += 25) ctx.fillText(v + '%', PAD.l - 4, PAD.t + cH - cH * v / 100 + 3);
+        };
+
+        // ═══ 匯出當前資料為 JSON ═══
+        function exportCurrentData() {
+            const exportData = {
+                generatedAt: new Date().toISOString(),
+                globalParams: GLOBAL_PARAMS,
+                clients: CLIENTS,
+                months: MONTHS,
+                trendAR: TREND_AR,
+                trendDSO: TREND_DSO,
+                agingStackData: AGING_STACK_DATA,
+                agingBuckets: AGING_BUCKETS
+            };
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = 'AR_Data_Export_' + new Date().toISOString().slice(0, 10) + '.json';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showImportStatus('JSON 匯出成功！', 'success');
+        }
+
+        // ═══ 還原預設資料 ═══
+        function resetToDefault() {
+            CLIENTS.length = 0;
+            DEFAULT_CLIENTS.forEach(c => CLIENTS.push(JSON.parse(JSON.stringify(c))));
+            MONTHS.length = 0;
+            DEFAULT_MONTHS.forEach(m => MONTHS.push(m));
+            TREND_AR = [38.2, 40.1, 41.8, 43.5, 44.1, 44.92];
+            TREND_DSO = [39.1, 40.5, 41.2, 42.8, 42.3, 42.5];
+            AGING_STACK_DATA = [[62, 18, 12, 6, 2], [61, 18, 12, 7, 2], [60, 17, 13, 7, 3], [59, 17, 13, 8, 3], [58, 18, 13, 8, 3], [59, 17, 12, 9, 3]];
+            AGING_BUCKETS = [
+                { label: '未逾期 / CURRENT', amount: 26.5, pct: 59.0, badRate: 0.0, loss: 0, color: 'var(--success)' },
+                { label: '1-30天 / 1-30 DAYS', amount: 7.8, pct: 17.4, badRate: 1.0, loss: 78, color: 'var(--cyan)' },
+                { label: '31-90天 / 31-90 DAYS', amount: 5.2, pct: 11.6, badRate: 3.0, loss: 156, color: 'var(--warning)' },
+                { label: '91-365天 / 91-365 DAYS', amount: 4.1, pct: 9.1, badRate: 5.0, loss: 205, color: 'var(--danger)' },
+                { label: '365天以上 / OVER 1Y', amount: 1.3, pct: 2.9, badRate: 20.0, loss: 260, color: '#ff8c9a' },
+            ];
+            GLOBAL_PARAMS = { revenue: 318.5, rate: 0.06, targetDSO: 38.0, targetARRatio: 0.12, badDebtRate: 0.0185, industryDSO: 45.2, period: '2026-02' };
+            refreshDashboard();
+            showImportStatus('已還原為預設範本資料', 'success');
+        }
+    </script>
+</body>
+
+</html>
