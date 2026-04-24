@@ -1,0 +1,4435 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AR 量子智慧戰情室 V5.0 QUANTUM</title>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+  <style>
+    /* ===== CSS VARIABLES & RESET ===== */
+    :root {
+      --bg: #05050f;
+      --card: #0e0e1a;
+      --card2: #111120;
+      --accent: #ffd700;
+      --cyan: #00d4ff;
+      --purple: #a855f7;
+      --danger: #ff4757;
+      --warning: #ffa502;
+      --success: #2ed573;
+      --text: #e8e8f0;
+      --text-dim: #8888aa;
+      --border: #1a1a2e;
+      --glass: rgba(14, 14, 26, 0.7);
+    }
+
+    /* ===== LIGHT THEME VARIABLES ===== */
+    [data-theme="light"] {
+      --bg: #f5f0e8;
+      --card: #ffffff;
+      --card2: #f9f6ef;
+      --accent: #c8960c;
+      --cyan: #0077aa;
+      --purple: #7c3aed;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --success: #16a34a;
+      --text: #1a1a2a;
+      --text-dim: #64748b;
+      --border: #d4c9b0;
+      --glass: rgba(245, 240, 232, 0.85);
+    }
+
+    /* 亮色模式 - Header */
+    [data-theme="light"] .header {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.97), rgba(250, 247, 240, 0.97));
+      border-bottom: 1px solid rgba(200, 150, 12, 0.25);
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    /* 亮色模式 - Toolbar */
+    [data-theme="light"] .toolbar {
+      background: rgba(255, 255, 255, 0.9);
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* 亮色模式 - Filter Bar */
+    [data-theme="light"] .filter-bar {
+      background: rgba(250, 247, 240, 0.85);
+    }
+
+    /* 亮色模式 - Tab Bar */
+    [data-theme="light"] .tab-bar {
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    /* 亮色模式 - Card hover */
+    [data-theme="light"] .card:hover {
+      border-color: rgba(200, 150, 12, 0.4);
+      box-shadow: 0 4px 16px rgba(200, 150, 12, 0.1);
+    }
+
+    /* 亮色模式 - Header stat */
+    [data-theme="light"] .header-stat {
+      background: rgba(200, 150, 12, 0.06);
+      border: 1px solid rgba(200, 150, 12, 0.15);
+    }
+
+    /* 亮色模式 - 滾動條 */
+    [data-theme="light"] ::-webkit-scrollbar-track {
+      background: #f0ebe0;
+    }
+
+    [data-theme="light"] ::-webkit-scrollbar-thumb {
+      background: #c8a87a;
+    }
+
+    /* 亮色模式 - Table */
+    [data-theme="light"] .data-table th {
+      background: rgba(200, 150, 12, 0.06);
+      border-bottom: 1px solid var(--border);
+    }
+
+    [data-theme="light"] .data-table tr:hover td {
+      background: rgba(200, 150, 12, 0.04);
+    }
+
+    /* 亮色模式 - Aging Bucket hover */
+    [data-theme="light"] .aging-bucket:hover {
+      border-color: rgba(200, 150, 12, 0.4);
+    }
+
+    /* 亮色模式 - Param Overlay */
+    [data-theme="light"] .param-overlay {
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    [data-theme="light"] .param-panel {
+      background: #fff;
+      border: 1px solid rgba(200, 150, 12, 0.4);
+      box-shadow: 0 0 40px rgba(200, 150, 12, 0.1);
+    }
+
+    /* 亮色模式 - Collapsible */
+    [data-theme="light"] .collapsible-header {
+      background: rgba(200, 150, 12, 0.06);
+    }
+
+    [data-theme="light"] .collapsible-header:hover {
+      background: rgba(200, 150, 12, 0.12);
+    }
+
+    /* 亮色模式 - Warn items */
+    [data-theme="light"] .warn-item {
+      background: rgba(220, 38, 38, 0.06);
+      border: 1px solid rgba(220, 38, 38, 0.18);
+    }
+
+    [data-theme="light"] .warn-item.orange {
+      background: rgba(217, 119, 6, 0.06);
+      border-color: rgba(217, 119, 6, 0.18);
+    }
+
+    [data-theme="light"] .warn-item.purple {
+      background: rgba(124, 58, 237, 0.06);
+      border-color: rgba(124, 58, 237, 0.18);
+    }
+
+    /* 亮色模式 - DAX code block */
+    [data-theme="light"] .dax-block {
+      background: #f0ebe0;
+      color: #0077aa;
+    }
+
+    /* 亮色模式 - Filter Select */
+    [data-theme="light"] .filter-select {
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    /* 亮色模式 - Toggle Btn */
+    [data-theme="light"] .toggle-btn {
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--text-dim);
+    }
+
+    [data-theme="light"] .toggle-btn.active {
+      background: rgba(200, 150, 12, 0.12);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* ===== 主題切換按鈕 ===== */
+    #themeToggleBtn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+      font-weight: 600;
+    }
+
+    #themeToggleBtn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: 0 0 12px rgba(255, 215, 0, 0.15);
+    }
+
+    [data-theme="light"] #themeToggleBtn:hover {
+      box-shadow: 0 0 12px rgba(200, 150, 12, 0.15);
+    }
+
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', 'PingFang TC', -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+
+    /* ===== PARTICLE CANVAS ===== */
+    #particleCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent);
+    }
+
+    /* ===== LAYOUT ===== */
+    .app-wrapper {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      background: linear-gradient(135deg, rgba(14, 14, 26, 0.95), rgba(17, 17, 32, 0.95));
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 215, 0, 0.15);
+      padding: 16px 24px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .header-title h1 {
+      font-size: 22px;
+      font-weight: 900;
+      background: linear-gradient(135deg, var(--accent), #fff8dc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 2px;
+    }
+
+    .header-title .subtitle {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 3px;
+      margin-top: 2px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .clock {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--cyan);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .clock-date {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    .system-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--success);
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1;
+        box-shadow: 0 0 0 0 rgba(46, 213, 115, 0.7);
+      }
+
+      50% {
+        opacity: 0.7;
+        box-shadow: 0 0 0 8px rgba(46, 213, 115, 0);
+      }
+    }
+
+    /* ===== HEADER STATS ===== */
+    .header-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    .header-stat {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 10px 14px;
+      text-align: center;
+    }
+
+    .header-stat .label {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .header-stat .value {
+      font-size: 20px;
+      font-weight: 900;
+      margin-top: 2px;
+    }
+
+    .header-stat .value.gold {
+      color: var(--accent);
+    }
+
+    .header-stat .value.red {
+      color: var(--danger);
+    }
+
+    .header-stat .value.cyan {
+      color: var(--cyan);
+    }
+
+    .header-stat .value.green {
+      color: var(--success);
+    }
+
+    /* ===== TOOLBAR ===== */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 24px;
+      background: rgba(14, 14, 26, 0.6);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .toolbar-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .toolbar-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .toolbar-btn.primary {
+      background: rgba(255, 215, 0, 0.1);
+      border-color: rgba(255, 215, 0, 0.3);
+      color: var(--accent);
+    }
+
+    .toolbar-sep {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+      margin: 0 4px;
+    }
+
+    /* ===== FILTER BAR ===== */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 24px;
+      background: rgba(14, 14, 26, 0.4);
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    .filter-select {
+      padding: 6px 10px;
+      border-radius: 6px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .filter-select:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .toggle-group {
+      display: flex;
+      gap: 0;
+    }
+
+    .toggle-btn {
+      padding: 6px 12px;
+      font-size: 11px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text-dim);
+      transition: all 0.2s;
+    }
+
+    .toggle-btn:first-child {
+      border-radius: 6px 0 0 6px;
+    }
+
+    .toggle-btn:last-child {
+      border-radius: 0 6px 6px 0;
+    }
+
+    .toggle-btn.active {
+      background: rgba(255, 215, 0, 0.15);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .toggle-btn:hover:not(.active) {
+      border-color: rgba(255, 215, 0, 0.3);
+      color: var(--text);
+    }
+
+    /* ===== TAB BAR ===== */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      padding: 0 24px;
+      background: rgba(14, 14, 26, 0.6);
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .tab-item {
+      padding: 12px 18px;
+      cursor: pointer;
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -2px;
+      transition: all 0.2s;
+      text-align: center;
+      min-width: 120px;
+    }
+
+    .tab-item:hover {
+      background: rgba(255, 215, 0, 0.03);
+    }
+
+    .tab-item.active {
+      border-bottom-color: var(--accent);
+      background: rgba(255, 215, 0, 0.05);
+    }
+
+    .tab-num {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      line-height: 20px;
+      border-radius: 50%;
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-dim);
+      margin-right: 4px;
+    }
+
+    .tab-item.active .tab-num {
+      background: var(--accent);
+      color: #000;
+    }
+
+    .tab-name {
+      font-size: 12px;
+      font-weight: 600;
+      display: block;
+    }
+
+    .tab-sub {
+      font-size: 9px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      display: block;
+      margin-top: 1px;
+    }
+
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      padding: 20px 24px;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      backdrop-filter: blur(10px);
+      transition: all 0.3s;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 215, 0, 0.3);
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.05);
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title .icon {
+      font-size: 14px;
+    }
+
+    /* ===== KPI CARDS ===== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .kpi-card {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .kpi-card:hover {
+      border-color: rgba(255, 215, 0, 0.3);
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.05);
+      transform: translateY(-2px);
+    }
+
+    .kpi-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .kpi-value {
+      font-size: 26px;
+      font-weight: 900;
+      margin: 6px 0;
+    }
+
+    .kpi-sub {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    /* ===== GRID LAYOUTS ===== */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .grid-5 {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .grid-2-1 {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .grid-1-2 {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    /* ===== TABLES ===== */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    .data-table th {
+      padding: 10px 12px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-dim);
+      font-weight: 600;
+      letter-spacing: 1px;
+      font-size: 10px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+
+    .data-table th:hover {
+      color: var(--accent);
+    }
+
+    .data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    }
+
+    .data-table tr:hover td {
+      background: rgba(255, 215, 0, 0.02);
+    }
+
+    /* ===== BADGES ===== */
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-safe {
+      background: rgba(46, 213, 115, 0.15);
+      color: var(--success);
+    }
+
+    .badge-low {
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--cyan);
+    }
+
+    .badge-mid {
+      background: rgba(255, 165, 2, 0.15);
+      color: var(--warning);
+    }
+
+    .badge-high {
+      background: rgba(168, 85, 247, 0.15);
+      color: var(--purple);
+    }
+
+    .badge-critical {
+      background: rgba(255, 71, 87, 0.15);
+      color: var(--danger);
+    }
+
+    .badge-A {
+      background: rgba(46, 213, 115, 0.15);
+      color: var(--success);
+    }
+
+    .badge-B {
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--cyan);
+    }
+
+    .badge-C {
+      background: rgba(255, 165, 2, 0.15);
+      color: var(--warning);
+    }
+
+    .badge-D {
+      background: rgba(255, 71, 87, 0.15);
+      color: var(--danger);
+    }
+
+    /* ===== AGING BAR ===== */
+    .aging-bucket {
+      text-align: center;
+      padding: 14px 10px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      transition: all 0.3s;
+    }
+
+    .aging-bucket:hover {
+      border-color: rgba(255, 215, 0, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .aging-bucket .bucket-label {
+      font-size: 10px;
+      color: var(--text-dim);
+      letter-spacing: 0.5px;
+    }
+
+    .aging-bucket .bucket-value {
+      font-size: 22px;
+      font-weight: 900;
+      margin: 6px 0;
+    }
+
+    .aging-bucket .bucket-pct {
+      font-size: 11px;
+    }
+
+    /* ===== CANVAS CONTAINER ===== */
+    .chart-container {
+      position: relative;
+      width: 100%;
+      max-height: 240px;
+      overflow: hidden;
+    }
+
+    .chart-container canvas {
+      width: 100% !important;
+      max-height: 240px;
+    }
+
+    /* 特定圖表配置——需要更大高度 */
+    .chart-container.tall {
+      max-height: 500px;
+    }
+
+    .chart-container.tall canvas {
+      max-height: 500px;
+    }
+
+    .chart-container.radar {
+      max-height: 320px;
+    }
+
+    .chart-container.radar canvas {
+      max-height: 320px;
+    }
+
+    /* ===== PARAMETER PANEL (FLOATING) ===== */
+    .param-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 200;
+    }
+
+    .param-overlay.show {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .param-panel {
+      background: var(--card);
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      border-radius: 16px;
+      padding: 28px;
+      width: 480px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 0 40px rgba(255, 215, 0, 0.1);
+    }
+
+    .param-panel h3 {
+      font-size: 16px;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
+
+    .param-group {
+      margin-bottom: 16px;
+    }
+
+    .param-group label {
+      display: block;
+      font-size: 11px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      letter-spacing: 1px;
+    }
+
+    .param-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .param-val {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      float: right;
+    }
+
+    /* ===== COLLAPSIBLE ===== */
+    .collapsible-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      cursor: pointer;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+
+    .collapsible-header:hover {
+      background: rgba(255, 215, 0, 0.05);
+      color: var(--accent);
+    }
+
+    .collapsible-content {
+      display: none;
+      padding: 12px;
+    }
+
+    .collapsible-content.open {
+      display: block;
+    }
+
+    /* ===== SCENARIO CARDS ===== */
+    .scenario-card {
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .scenario-card.optimistic {
+      background: rgba(46, 213, 115, 0.08);
+      border: 1px solid rgba(46, 213, 115, 0.2);
+    }
+
+    .scenario-card.baseline {
+      background: rgba(255, 165, 2, 0.08);
+      border: 1px solid rgba(255, 165, 2, 0.2);
+    }
+
+    .scenario-card.pessimistic {
+      background: rgba(255, 71, 87, 0.08);
+      border: 1px solid rgba(255, 71, 87, 0.2);
+    }
+
+    .scenario-title {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    /* ===== SLIDER PANEL ===== */
+    .sim-slider-group {
+      margin-bottom: 14px;
+    }
+
+    .sim-slider-group label {
+      font-size: 11px;
+      color: var(--text-dim);
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sim-slider-group input[type="range"] {
+      width: 100%;
+      accent-color: var(--cyan);
+      margin-top: 4px;
+    }
+
+    .sim-result {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .sim-result-item {
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .sim-result-item .sim-label {
+      font-size: 10px;
+      color: var(--text-dim);
+    }
+
+    .sim-result-item .sim-val {
+      font-size: 18px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    /* ===== RADIO GROUP ===== */
+    .radio-group {
+      display: flex;
+      gap: 12px;
+      margin: 8px 0;
+    }
+
+    .radio-group label {
+      font-size: 12px;
+      color: var(--text-dim);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .radio-group input[type="radio"] {
+      accent-color: var(--cyan);
+    }
+
+    /* ===== WARN GRID ===== */
+    .warn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .warn-item {
+      background: rgba(255, 71, 87, 0.06);
+      border: 1px solid rgba(255, 71, 87, 0.15);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .warn-item.orange {
+      background: rgba(255, 165, 2, 0.06);
+      border-color: rgba(255, 165, 2, 0.15);
+    }
+
+    .warn-item.purple {
+      background: rgba(168, 85, 247, 0.06);
+      border-color: rgba(168, 85, 247, 0.15);
+    }
+
+    .warn-item .warn-title {
+      font-size: 11px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .warn-item .warn-desc {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* ===== DAX CODE ===== */
+    .dax-block {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: 'Courier New', monospace;
+      font-size: 11px;
+      color: var(--cyan);
+      overflow-x: auto;
+      margin-top: 4px;
+    }
+
+    /* ===== LIFECYCLE COLORS ===== */
+    .lc-new {
+      color: var(--cyan);
+    }
+
+    .lc-growing {
+      color: var(--success);
+    }
+
+    .lc-mature {
+      color: var(--accent);
+    }
+
+    .lc-declining {
+      color: var(--danger);
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      text-align: center;
+      padding: 16px;
+      font-size: 10px;
+      color: var(--text-dim);
+      border-top: 1px solid var(--border);
+      margin-top: 20px;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 900px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid-2,
+      .grid-3,
+      .grid-4,
+      .grid-5,
+      .grid-2-1,
+      .grid-1-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .header-stats {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .tab-item {
+        min-width: 90px;
+        padding: 10px 12px;
+      }
+    }
+
+    /* ===== HIDDEN FILE INPUT ===== */
+    #fileInput {
+      display: none;
+    }
+
+    /* ================================================================
+       AR V5.0 — AI 分析模組 CSS
+    ================================================================ */
+
+    /* AI 側邊滑出面板 */
+    #ai-panel {
+      position: fixed; top: 0; right: -450px; width: 440px; height: 100vh;
+      background: var(--card); border-left: 1px solid rgba(255,215,0,0.15);
+      box-shadow: -8px 0 40px rgba(0,0,0,0.5);
+      display: flex; flex-direction: column; z-index: 1500;
+      transition: right 0.35s cubic-bezier(.4,0,.2,1);
+      font-family: 'Inter', sans-serif;
+    }
+    #ai-panel.open { right: 0; }
+    [data-theme="light"] #ai-panel {
+      background: #ffffff;
+      border-left: 1px solid rgba(200,150,12,0.2);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.12);
+    }
+
+    /* 面板頂部 Header */
+    .ai-panel-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid rgba(255,215,0,0.1);
+      background: linear-gradient(135deg, rgba(255,215,0,0.06), rgba(0,212,255,0.04));
+      flex-shrink: 0;
+    }
+    .ai-panel-title {
+      font-size: 0.85rem; font-weight: 700; color: var(--accent);
+      letter-spacing: 1px; display: flex; align-items: center; gap: 8px;
+    }
+    .ai-panel-close {
+      background: none; border: none; color: var(--text-dim); cursor: pointer;
+      font-size: 1.1rem; padding: 4px 8px; border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .ai-panel-close:hover { background: rgba(255,71,87,0.15); color: var(--danger); }
+
+    /* 狀態標籤 */
+    .ai-status-badge {
+      font-size: 0.62rem; padding: 2px 8px; border-radius: 10px;
+      font-weight: 600; letter-spacing: 0.5px; margin-left: 6px;
+    }
+    .ai-status-badge.idle    { background: rgba(136,136,170,0.2); color: var(--text-dim); }
+    .ai-status-badge.ready   { background: rgba(46,213,115,0.2);  color: var(--success); }
+    .ai-status-badge.streaming { background: rgba(255,215,0,0.2); color: var(--accent); }
+    .ai-status-badge.error   { background: rgba(255,71,87,0.2);   color: var(--danger); }
+
+    /* 設定區 */
+    .ai-settings {
+      padding: 10px 14px 6px; border-bottom: 1px solid rgba(255,215,0,0.08);
+      flex-shrink: 0;
+    }
+    .ai-settings-row {
+      display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+      font-size: 0.7rem; color: var(--text-dim);
+    }
+    .ai-settings-row label { width: 64px; flex-shrink: 0; font-weight: 600; }
+    .ai-settings-row select, .ai-settings-row input[type="text"],
+    .ai-settings-row input[type="password"], .ai-settings-row select {
+      flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,215,0,0.15);
+      border-radius: 6px; color: var(--text); padding: 4px 8px;
+      font-size: 0.7rem; font-family: inherit; outline: none;
+    }
+    [data-theme="light"] .ai-settings-row select,
+    [data-theme="light"] .ai-settings-row input[type="text"],
+    [data-theme="light"] .ai-settings-row input[type="password"] {
+      background: #f9f6ef; border-color: rgba(200,150,12,0.25); color: var(--text);
+    }
+    .ai-settings-row input[type="range"] { flex: 1; accent-color: var(--accent); }
+    .ai-key-wrap { flex: 1; display: flex; gap: 4px; }
+    .ai-key-wrap input { flex: 1; }
+    #ai-toggle-key {
+      background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.2);
+      border-radius: 6px; color: var(--accent); cursor: pointer; padding: 2px 7px;
+      font-size: 0.72rem;
+    }
+    .ai-save-hint {
+      font-size: 0.62rem; color: var(--success); margin-left: 4px; display: none;
+    }
+    #ai-context-label {
+      font-size: 0.68rem; color: var(--cyan); font-weight: 600;
+      background: rgba(0,212,255,0.08); padding: 2px 8px; border-radius: 8px;
+    }
+
+    /* 對話區 */
+    #ai-messages {
+      flex: 1; overflow-y: auto; padding: 12px 14px; display: flex;
+      flex-direction: column; gap: 10px;
+    }
+    #ai-messages::-webkit-scrollbar { width: 4px; }
+    #ai-messages::-webkit-scrollbar-thumb { background: rgba(255,215,0,0.2); border-radius: 2px; }
+
+    .ai-welcome {
+      text-align: center; padding: 20px 12px; color: var(--text-dim); font-size: 0.78rem;
+    }
+    .ai-welcome-icon { font-size: 2.2rem; margin-bottom: 10px; }
+
+    .ai-msg {
+      max-width: 96%; font-size: 0.78rem; line-height: 1.65;
+      padding: 10px 13px; border-radius: 12px; position: relative; word-break: break-word;
+    }
+    .ai-msg.user {
+      background: rgba(255,215,0,0.1); border: 1px solid rgba(255,215,0,0.18);
+      align-self: flex-end; color: var(--text);
+    }
+    .ai-msg.assistant {
+      background: rgba(0,212,255,0.06); border: 1px solid rgba(0,212,255,0.12);
+      align-self: flex-start; color: var(--text);
+    }
+    [data-theme="light"] .ai-msg.user {
+      background: rgba(200,150,12,0.08); border-color: rgba(200,150,12,0.2);
+    }
+    [data-theme="light"] .ai-msg.assistant {
+      background: rgba(0,119,170,0.05); border-color: rgba(0,119,170,0.15);
+    }
+    .ai-msg table {
+      width: 100%; border-collapse: collapse; font-size: 0.72rem; margin: 8px 0;
+    }
+    .ai-msg th { background: rgba(255,215,0,0.1); padding: 4px 8px; text-align: left; font-size: 0.7rem; }
+    .ai-msg td { padding: 3px 8px; border-bottom: 1px solid rgba(255,215,0,0.06); }
+    .ai-msg h1, .ai-msg h2, .ai-msg h3 {
+      color: var(--accent); font-size: 0.82rem; margin: 8px 0 4px; font-weight: 700;
+    }
+    .ai-msg ul { padding-left: 16px; margin: 4px 0; }
+    .ai-msg li { margin-bottom: 2px; }
+    .ai-msg code {
+      background: rgba(0,212,255,0.1); border-radius: 4px;
+      padding: 1px 5px; font-size: 0.7rem; font-family: monospace;
+    }
+    .ai-msg pre { background: rgba(0,0,0,0.3); border-radius: 6px; padding: 8px; overflow-x: auto; }
+    .ai-msg hr { border: none; border-top: 1px solid rgba(255,215,0,0.12); margin: 6px 0; }
+    .ai-copy-btn {
+      position: absolute; top: 6px; right: 6px; background: rgba(255,215,0,0.1);
+      border: none; border-radius: 5px; color: var(--text-dim); cursor: pointer;
+      font-size: 0.7rem; padding: 2px 6px; opacity: 0; transition: opacity 0.2s;
+    }
+    .ai-msg:hover .ai-copy-btn { opacity: 1; }
+
+    /* 思考動畫 */
+    .ai-thinking-dots::after {
+      content: ''; animation: aiDots 1.2s steps(3, end) infinite;
+    }
+    @keyframes aiDots {
+      0%   { content: ''; }
+      33%  { content: '.'; }
+      66%  { content: '..'; }
+      100% { content: '...'; }
+    }
+
+    /* 輸入區 */
+    .ai-input-area {
+      padding: 10px 14px 12px; border-top: 1px solid rgba(255,215,0,0.08);
+      display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;
+    }
+    .ai-input-row { display: flex; gap: 6px; }
+    #ai-input {
+      flex: 1; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,215,0,0.18);
+      border-radius: 8px; color: var(--text); padding: 8px 10px;
+      font-size: 0.78rem; font-family: inherit; resize: none; outline: none;
+      min-height: 60px; max-height: 120px;
+    }
+    [data-theme="light"] #ai-input {
+      background: #f9f6ef; border-color: rgba(200,150,12,0.25); color: var(--text);
+    }
+    #ai-input:focus { border-color: rgba(255,215,0,0.4); }
+    .ai-send-btn {
+      background: linear-gradient(135deg, var(--accent), #f0a500);
+      border: none; border-radius: 8px; color: #000; font-weight: 700;
+      font-size: 0.75rem; padding: 0 16px; cursor: pointer; white-space: nowrap;
+      transition: opacity 0.2s;
+    }
+    .ai-send-btn:hover { opacity: 0.85; }
+    .ai-send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .ai-clear-btn {
+      background: rgba(255,71,87,0.12); border: 1px solid rgba(255,71,87,0.2);
+      border-radius: 8px; color: var(--danger); cursor: pointer; font-size: 0.8rem;
+      padding: 0 10px;
+    }
+    .ai-input-actions {
+      display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+    }
+    #ai-token-hint { font-size: 0.62rem; color: var(--text-dim); margin-left: auto; }
+
+    /* 浮動觸發按鈕 */
+    #ai-panel-toggle {
+      position: fixed; right: 0; top: 50%; transform: translateY(-50%);
+      background: linear-gradient(135deg, rgba(255,215,0,0.85), rgba(240,165,0,0.85));
+      border: none; border-radius: 10px 0 0 10px; padding: 14px 8px;
+      font-size: 1.3rem; cursor: pointer; z-index: 1400;
+      box-shadow: -2px 0 12px rgba(255,215,0,0.25);
+      transition: right 0.35s cubic-bezier(.4,0,.2,1), box-shadow 0.2s;
+      writing-mode: vertical-rl; text-orientation: mixed;
+      display: flex; align-items: center; gap: 6px;
+      color: #000; font-weight: 700; letter-spacing: 1px;
+    }
+    #ai-panel-toggle:hover { box-shadow: -3px 0 20px rgba(255,215,0,0.4); }
+
+    /* 每頁籤 AI 分析按鈕列 */
+    .ai-tab-bar {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 14px; flex-wrap: wrap;
+    }
+    .ai-tab-btn {
+      background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(0,212,255,0.06));
+      border: 1px solid rgba(255,215,0,0.22); border-radius: 20px;
+      color: var(--accent); font-size: 0.72rem; font-weight: 600;
+      padding: 6px 16px; cursor: pointer; font-family: inherit;
+      transition: all 0.2s; letter-spacing: 0.3px;
+    }
+    .ai-tab-btn:hover {
+      background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(0,212,255,0.1));
+      border-color: rgba(255,215,0,0.45);
+      box-shadow: 0 0 14px rgba(255,215,0,0.15);
+    }
+    [data-theme="light"] .ai-tab-btn {
+      background: rgba(200,150,12,0.07); border-color: rgba(200,150,12,0.25); color: var(--accent);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- PARTICLE BACKGROUND -->
+  <canvas id="particleCanvas"></canvas>
+
+  <div class="app-wrapper">
+    <!-- ===== HEADER ===== -->
+    <header class="header">
+      <div class="header-top">
+        <div class="header-title">
+          <h1>AR 量子智慧戰情室 V5.0 QUANTUM</h1>
+          <div class="subtitle">AR QUANTUM INTELLIGENCE CENTER V5.0 HYPERION EDITION</div>
+        </div>
+        <div class="header-right">
+          <div>
+            <div class="clock" id="clock">--:--:--</div>
+            <div class="clock-date" id="clockDate">----/--/--</div>
+          </div>
+          <div class="system-status">
+            <span class="pulse-dot"></span>
+            SYSTEM ONLINE
+          </div>
+        </div>
+      </div>
+      <div class="header-stats">
+        <div class="header-stat">
+          <div class="label">應收總額</div>
+          <div class="value gold" id="hsTotalAR">$44.92M</div>
+        </div>
+        <div class="header-stat">
+          <div class="label">逾期客戶</div>
+          <div class="value red" id="hsOverdue">12</div>
+        </div>
+        <div class="header-stat">
+          <div class="label">高風險</div>
+          <div class="value cyan" id="hsHighRisk">4</div>
+        </div>
+        <div class="header-stat">
+          <div class="label">系統健康度</div>
+          <div class="value green" id="hsHealth">87%</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ===== TOOLBAR ===== -->
+    <div class="toolbar">
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+      <button class="toolbar-btn primary" onclick="document.getElementById('fileInput').click()">📥 匯入 Excel</button>
+      <button class="toolbar-btn" onclick="exportJSON()">📤 匯出 JSON</button>
+      <button class="toolbar-btn" onclick="resetDefaults()">🔄 還原預設</button>
+      <div class="toolbar-sep"></div>
+      <button class="toolbar-btn" onclick="toggleParamPanel()">⚙ 參數調整</button>
+      <div class="toolbar-sep"></div>
+      <button id="themeToggleBtn" onclick="toggleTheme()">🌙 暗色模式</button>
+      <div class="toolbar-sep"></div>
+      <button class="toolbar-btn" onclick="toggleAIPanel()" title="開啟 AI 分析助手 (Ctrl+Shift+A)" style="color:var(--accent);border-color:rgba(255,215,0,0.3);background:rgba(255,215,0,0.07);">🤖 AI助手</button>
+    </div>
+
+    <!-- ===== FILTER BAR ===== -->
+    <div class="filter-bar">
+      <span class="filter-label">🏙 城市</span>
+      <select class="filter-select" id="filterCity" onchange="applyFilters()">
+        <option value="all">全部</option>
+        <option value="taipei">台北</option>
+        <option value="hsinchu">新竹</option>
+        <option value="taichung">台中</option>
+        <option value="kaohsiung">高雄</option>
+      </select>
+      <div class="toolbar-sep"></div>
+      <span class="filter-label">📅 時間範圍</span>
+      <select class="filter-select" id="filterTime" onchange="applyFilters()">
+        <option value="3">近3月</option>
+        <option value="6">近6月</option>
+        <option value="12">近12月</option>
+      </select>
+      <div class="toolbar-sep"></div>
+      <span class="filter-label">⚠ 風險等級</span>
+      <div class="toggle-group" id="riskToggle">
+        <button class="toggle-btn active" data-risk="all" onclick="setRiskFilter(this)">全部</button>
+        <button class="toggle-btn" data-risk="safe" onclick="setRiskFilter(this)">無</button>
+        <button class="toggle-btn" data-risk="low" onclick="setRiskFilter(this)">低</button>
+        <button class="toggle-btn" data-risk="mid" onclick="setRiskFilter(this)">中</button>
+        <button class="toggle-btn" data-risk="high" onclick="setRiskFilter(this)">高</button>
+        <button class="toggle-btn" data-risk="critical" onclick="setRiskFilter(this)">超高</button>
+      </div>
+    </div>
+
+    <!-- ===== TAB BAR ===== -->
+    <div class="tab-bar" id="tabBar">
+      <div class="tab-item active" data-tab="0" onclick="switchTab(0)">
+        <span class="tab-num">1</span>
+        <span class="tab-name">應收概況</span>
+        <span class="tab-sub">AR OVERVIEW</span>
+      </div>
+      <div class="tab-item" data-tab="1" onclick="switchTab(1)">
+        <span class="tab-num">2</span>
+        <span class="tab-name">帳齡管控</span>
+        <span class="tab-sub">AGING CONTROL</span>
+      </div>
+      <div class="tab-item" data-tab="2" onclick="switchTab(2)">
+        <span class="tab-num">3</span>
+        <span class="tab-name">風險管控</span>
+        <span class="tab-sub">RISK MGMT</span>
+      </div>
+      <div class="tab-item" data-tab="3" onclick="switchTab(3)">
+        <span class="tab-num">4</span>
+        <span class="tab-name">回收決策</span>
+        <span class="tab-sub">COLLECTION</span>
+      </div>
+      <div class="tab-item" data-tab="4" onclick="switchTab(4)">
+        <span class="tab-num">5</span>
+        <span class="tab-name">客戶生命週期</span>
+        <span class="tab-sub">CUSTOMER LIFECYCLE</span>
+      </div>
+      <div class="tab-item" data-tab="5" onclick="switchTab(5)">
+        <span class="tab-num">6</span>
+        <span class="tab-name">授信組合矩陣</span>
+        <span class="tab-sub">CREDIT PORTFOLIO</span>
+      </div>
+      <div class="tab-item" data-tab="6" onclick="switchTab(6)">
+        <span class="tab-num">7</span>
+        <span class="tab-name">預測引擎</span>
+        <span class="tab-sub">FORECAST ENGINE</span>
+      </div>
+      <div class="tab-item" data-tab="7" onclick="switchTab(7)">
+        <span class="tab-num">8</span>
+        <span class="tab-name">業務歸因</span>
+        <span class="tab-sub">SALES ATTRIBUTION</span>
+      </div>
+    </div>
+
+    <!-- ===== TAB PANELS ===== -->
+    <div class="main-content">
+
+      <!-- ===================== TAB 1: AR OVERVIEW ===================== -->
+      <div class="tab-panel active" id="tab0">
+        <!-- AI 分析按鈕列 -->
+        <div class="ai-tab-bar">
+          <button class="ai-tab-btn" onclick="triggerTabAI('tab0')">🤖 AI 分析 <span style="opacity:0.6;font-size:0.68rem">|</span> 📊 應收概況</button>
+        </div>
+        <div class="kpi-grid" id="overviewKPI1">
+          <div class="kpi-card">
+            <div class="kpi-label">期末應收餘額</div>
+            <div class="kpi-value gold" id="kpi-arBal">$44.92M</div>
+            <div class="kpi-sub">End AR Balance</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">累計營收</div>
+            <div class="kpi-value" style="color:var(--cyan)" id="kpi-rev">$318.5M</div>
+            <div class="kpi-sub">Cum. Revenue</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">AR 比率</div>
+            <div class="kpi-value" style="color:var(--purple)" id="kpi-arRatio">14.1%</div>
+            <div class="kpi-sub">AR / Revenue</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">AR 周轉率</div>
+            <div class="kpi-value" style="color:var(--success)" id="kpi-turnover">8.6x</div>
+            <div class="kpi-sub">AR Turnover</div>
+          </div>
+        </div>
+        <div class="kpi-grid" id="overviewKPI2">
+          <div class="kpi-card">
+            <div class="kpi-label">滾動 DSO</div>
+            <div class="kpi-value" style="color:var(--warning)" id="kpi-dso">42.5天</div>
+            <div class="kpi-sub">Rolling DSO</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">加權平均帳齡</div>
+            <div class="kpi-value" style="color:var(--cyan)" id="kpi-waa">28.3天</div>
+            <div class="kpi-sub">Weighted Avg Aging</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">信用資金成本</div>
+            <div class="kpi-value" style="color:var(--danger)" id="kpi-creditCost">$207K</div>
+            <div class="kpi-sub">Credit Cost</div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-label">信用資金成本率</div>
+            <div class="kpi-value" style="color:var(--purple)" id="kpi-creditRate">0.065%</div>
+            <div class="kpi-sub">Credit Cost Rate</div>
+          </div>
+        </div>
+        <div class="grid-2-1">
+          <div class="card">
+            <div class="card-title"><span class="icon">📈</span> 應收餘額 & DSO 趨勢 / AR & DSO TREND</div>
+            <div class="chart-container"><canvas id="chartARTrend" height="220"></canvas></div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-title"><span class="icon">🛡</span> 壞帳準備率 / BAD DEBT RATIO</div>
+              <div style="text-align:center;">
+                <div style="font-size:36px;font-weight:900;color:var(--warning);" id="bdRatio">1.84%</div>
+                <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">壞帳準備 / 應收餘額</div>
+                <div style="margin-top:8px;font-size:12px;">準備金額 <span
+                    style="color:var(--accent);font-weight:700;">$826K</span></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title"><span class="icon">🎯</span> 信用評分分佈 / CREDIT SCORE</div>
+              <div style="text-align:center;"><svg id="svgCreditDonut" width="180" height="180"
+                  viewBox="0 0 180 180"></svg></div>
+              <div id="creditDonutLegend"
+                style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px;font-size:10px;">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== TAB 2: AGING CONTROL ===================== -->
+      <div class="tab-panel" id="tab1">
+        <!-- AI 分析按鈕列 -->
+        <div class="ai-tab-bar">
+          <button class="ai-tab-btn" onclick="triggerTabAI('tab1')">🤖 AI 分析 <span style="opacity:0.6;font-size:0.68rem">|</span> ⏱ 帳齡管控</button>
+        </div>
+        <div class="grid-2-1">
+          <div class="card">
+            <div class="card-title"><span class="icon">📊</span> 100% 堆疊帳齡趨勢 / STACKED AGING TREND</div>
+            <div class="chart-container"><canvas id="chartAgingStack" height="220"></canvas></div>
+          </div>
+          <div class="card" style="text-align:center;">
+            <div class="card-title" style="justify-content:center;"><span class="icon">⏱</span> 加權平均帳齡</div>
+            <div style="font-size:36px;font-weight:900;color:var(--cyan);" id="bigWAA">28.3</div>
+            <div style="font-size:14px;color:var(--text-dim);">天 / Days</div>
+            <div style="margin-top:12px;font-size:12px;color:var(--text-dim);">較上月 <span style="color:var(--success);">▼
+                1.2天</span></div>
+          </div>
+        </div>
+        <div class="grid-5" id="agingBuckets">
+          <div class="aging-bucket">
+            <div class="bucket-label">未逾期</div>
+            <div class="bucket-value" style="color:var(--success);" id="ab0">$20.4M</div>
+            <div class="bucket-pct" style="color:var(--success);">45.4%</div>
+          </div>
+          <div class="aging-bucket">
+            <div class="bucket-label">1-30天</div>
+            <div class="bucket-value" style="color:var(--cyan);" id="ab1">$10.2M</div>
+            <div class="bucket-pct" style="color:var(--cyan);">22.7%</div>
+          </div>
+          <div class="aging-bucket">
+            <div class="bucket-label">31-90天</div>
+            <div class="bucket-value" style="color:var(--warning);" id="ab2">$7.8M</div>
+            <div class="bucket-pct" style="color:var(--warning);">17.4%</div>
+          </div>
+          <div class="aging-bucket">
+            <div class="bucket-label">91-365天</div>
+            <div class="bucket-value" style="color:var(--purple);" id="ab3">$4.6M</div>
+            <div class="bucket-pct" style="color:var(--purple);">10.2%</div>
+          </div>
+          <div class="aging-bucket">
+            <div class="bucket-label">365天以上</div>
+            <div class="bucket-value" style="color:var(--danger);" id="ab4">$1.92M</div>
+            <div class="bucket-pct" style="color:var(--danger);">4.3%</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">📉</span> 各客戶帳齡水平條形圖 / CLIENT AGING BAR</div>
+          <div class="chart-container"><canvas id="chartAgingBar" height="220"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ===================== TAB 3: RISK MGMT ===================== -->
+      <div class="tab-panel" id="tab2">
+        <!-- AI 分析按鈕列 -->
+        <div class="ai-tab-bar">
+          <button class="ai-tab-btn" onclick="triggerTabAI('tab2')">🤖 AI 分析 <span style="opacity:0.6;font-size:0.68rem">|</span> 🕸 風險管控</button>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><span class="icon">🕸</span> 風險維度雷達圖 / RISK RADAR</div>
+            <div class="chart-container radar" style="max-width:360px;margin:0 auto;"><canvas id="chartRiskRadar"
+                height="300"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="icon">🫧</span> 泡泡矩陣 / BUBBLE MATRIX</div>
+            <div class="chart-container tall"><canvas id="canvasBubble" height="300"></canvas></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-title"><span class="icon">🎚</span> 五級風險分類矩陣 / RISK CLASSIFICATION</div>
+          <table class="data-table" id="riskMatrix">
+            <thead>
+              <tr>
+                <th>風險等級</th>
+                <th>客戶數</th>
+                <th>應收金額</th>
+                <th>佔比</th>
+                <th>壞帳準備率</th>
+                <th>策略建議</th>
+              </tr>
+            </thead>
+            <tbody id="riskMatrixBody"></tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">📋</span> 客戶風險明細 / CLIENT RISK DETAIL</div>
+          <table class="data-table" id="riskDetailTable">
+            <thead>
+              <tr>
+                <th onclick="sortTable('riskDetailBody',0)">客戶名稱</th>
+                <th onclick="sortTable('riskDetailBody',1)">城市</th>
+                <th onclick="sortTable('riskDetailBody',2)">應收餘額</th>
+                <th onclick="sortTable('riskDetailBody',3)">帳齡(天)</th>
+                <th onclick="sortTable('riskDetailBody',4)">壞帳率</th>
+                <th onclick="sortTable('riskDetailBody',5)">風險等級</th>
+                <th>策略</th>
+              </tr>
+            </thead>
+            <tbody id="riskDetailBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===================== TAB 4: COLLECTION ===================== -->
+      <div class="tab-panel" id="tab3">
+        <!-- AI 分析按鈕列 -->
+        <div class="ai-tab-bar">
+          <button class="ai-tab-btn" onclick="triggerTabAI('tab3')">🤖 AI 分析 <span style="opacity:0.6;font-size:0.68rem">|</span> 🚨 回收決策</button>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><span class="icon">🚨</span> 催收優先序列 / COLLECTION PRIORITY</div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>排序</th>
+                  <th>客戶名稱</th>
+                  <th>緊迫指數</th>
+                  <th>壞帳($K)</th>
+                  <th>逾期天數</th>
+                  <th>策略</th>
+                </tr>
+              </thead>
+              <tbody id="collectionBody"></tbody>
+            </table>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-title"><span class="icon">⚡</span> 信用資金成本率 / CREDIT COST GAUGE</div>
+              <div style="text-align:center;"><svg id="svgGauge" width="220" height="130" viewBox="0 0 220 130"></svg>
+              </div>
+              <div style="text-align:center;font-size:11px;color:var(--text-dim);margin-top:6px;">目標 ≤ 0.05% | 當前 <span
+                  style="color:var(--warning);font-weight:700;">0.065%</span></div>
+            </div>
+            <div class="card">
+              <div class="card-title"><span class="icon">🤖</span> AI 主動風險預警 / AI RISK ALERTS</div>
+              <div class="warn-grid">
+                <div class="warn-item">
+                  <div class="warn-title" style="color:var(--danger);">🔴 三星電子 高危</div>
+                  <div class="warn-desc">帳齡45天，壞帳率2.5%，建議立即啟動現款結算機制</div>
+                </div>
+                <div class="warn-item orange">
+                  <div class="warn-title" style="color:var(--warning);">🟠 環球晶圓 警戒</div>
+                  <div class="warn-desc">帳齡38天持續上升，信用評分降至42，建議加強催收</div>
+                </div>
+                <div class="warn-item purple">
+                  <div class="warn-title" style="color:var(--purple);">🟣 廣達電腦 注意</div>
+                  <div class="warn-desc">帳齡32天突破30天門檻，需關注後續付款表現</div>
+                </div>
+                <div class="warn-item">
+                  <div class="warn-title" style="color:var(--danger);">🔴 日月光 監控</div>
+                  <div class="warn-desc">應收$6.3M佔比高，帳齡22天但呈上升趨勢</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">📐</span> DAX 公式速查 / DAX FORMULA REFERENCE</div>
+          <div id="daxFormulas">
+            <div class="collapsible-header" onclick="toggleCollapse(this)">📌 DSO 計算 <span>▶</span></div>
+            <div class="collapsible-content">
+              <div class="dax-block">DSO = DIVIDE([應收帳款期末餘額], [滾動12個月營收]) × 365</div>
+            </div>
+            <div class="collapsible-header" onclick="toggleCollapse(this)">📌 加權平均帳齡 <span>▶</span></div>
+            <div class="collapsible-content">
+              <div class="dax-block">WAA = SUMX(AR_Table, [餘額] × [帳齡天數]) / SUM(AR_Table[餘額])</div>
+            </div>
+            <div class="collapsible-header" onclick="toggleCollapse(this)">📌 信用資金成本 <span>▶</span></div>
+            <div class="collapsible-content">
+              <div class="dax-block">CreditCost = SUMX(AR_Table, [餘額] × [帳齡天數] × [年化利率] / 365)</div>
+            </div>
+            <div class="collapsible-header" onclick="toggleCollapse(this)">📌 壞帳準備率 <span>▶</span></div>
+            <div class="collapsible-content">
+              <div class="dax-block">BadDebtRatio = DIVIDE(SUM(AR_Table[預計壞帳]), SUM(AR_Table[餘額]))</div>
+            </div>
+            <div class="collapsible-header" onclick="toggleCollapse(this)">📌 AR 周轉率 <span>▶</span></div>
+            <div class="collapsible-content">
+              <div class="dax-block">AR_Turnover = DIVIDE([累計營收], AVERAGE([期初AR], [期末AR]))</div>
+            </div>
+            <div class="collapsible-header" onclick="toggleCollapse(this)">📌 緊迫指數 <span>▶</span></div>
+            <div class="collapsible-content">
+              <div class="dax-block">UrgencyIndex = [預計壞帳] × [逾期天數] / 1000</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== TAB 5: CUSTOMER LIFECYCLE ===================== -->
+      <div class="tab-panel" id="tab4">
+        <!-- AI 分析按鈕列 -->
+        <div class="ai-tab-bar">
+          <button class="ai-tab-btn" onclick="triggerTabAI('tab4')">🤖 AI 分析 <span style="opacity:0.6;font-size:0.68rem">|</span> 🔬 客戶生命週期</button>
+        </div>
+        <div class="grid-2-1">
+          <div class="card">
+            <div class="card-title"><span class="icon">🔬</span> 生命週期四象限圖 / LIFECYCLE QUADRANT</div>
+            <div class="chart-container tall"><canvas id="canvasLifecycle" height="360"></canvas></div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-title"><span class="icon">📊</span> 生命週期分類統計 / LIFECYCLE STATS</div>
+              <div class="grid-2" style="margin-bottom:0;">
+                <div class="aging-bucket">
+                  <div class="bucket-label lc-new">🆕 新客戶期</div>
+                  <div class="bucket-value lc-new">3家</div>
+                  <div class="bucket-pct" style="color:var(--text-dim);">佔12%</div>
+                </div>
+                <div class="aging-bucket">
+                  <div class="bucket-label lc-growing">📈 成長期</div>
+                  <div class="bucket-value lc-growing">7家</div>
+                  <div class="bucket-pct" style="color:var(--text-dim);">佔28%</div>
+                </div>
+                <div class="aging-bucket">
+                  <div class="bucket-label lc-mature">⭐ 成熟期</div>
+                  <div class="bucket-value lc-mature">11家</div>
+                  <div class="bucket-pct" style="color:var(--text-dim);">佔44%</div>
+                </div>
+                <div class="aging-bucket">
+                  <div class="bucket-label lc-declining">📉 衰退期</div>
+                  <div class="bucket-value lc-declining">4家</div>
+                  <div class="bucket-pct" style="color:var(--text-dim);">佔16%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-title"><span class="icon">📈</span> 信用成熟度時序圖 / CREDIT MATURITY CURVE</div>
+          <div class="chart-container"><canvas id="chartLifecycleLine" height="220"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">📋</span> 生命週期策略矩陣 / LIFECYCLE STRATEGY MATRIX</div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>階段</th>
+                <th>交易特徵</th>
+                <th>信用策略</th>
+                <th>授信額度政策</th>
+                <th>預警閾值</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="background:rgba(0,212,255,0.04);">
+                <td><span class="badge badge-low">新客戶期</span></td>
+                <td>首0-3筆交易，交易金額小</td>
+                <td>嚴格信用審查，短期付款條件</td>
+                <td>初始低額度，逐步提升</td>
+                <td>單筆 > $500K 即預警</td>
+              </tr>
+              <tr style="background:rgba(46,213,115,0.04);">
+                <td><span class="badge badge-safe">成長期</span></td>
+                <td>4-10筆交易，金額漸增</td>
+                <td>定期評估，適度放寬條件</td>
+                <td>按季調升，上限營收20%</td>
+                <td>帳齡 > 25天即預警</td>
+              </tr>
+              <tr style="background:rgba(255,215,0,0.04);">
+                <td><span style="color:var(--accent);font-weight:700;">⭐ 成熟期</span></td>
+                <td>10筆以上，高評分穩定</td>
+                <td>優惠條件，策略合作夥伴</td>
+                <td>彈性額度，可達營收30%</td>
+                <td>帳齡 > 35天即預警</td>
+              </tr>
+              <tr style="background:rgba(255,71,87,0.04);">
+                <td><span class="badge badge-critical">衰退期</span></td>
+                <td>10筆以上，評分下降</td>
+                <td>緊縮信用，增加擔保要求</td>
+                <td>凍結或降低額度</td>
+                <td>評分 < 50 立即預警</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===================== TAB 6: CREDIT PORTFOLIO ===================== -->
+      <div class="tab-panel" id="tab5">
+        <!-- AI 分析按鈕列 -->
+        <div class="ai-tab-bar">
+          <button class="ai-tab-btn" onclick="triggerTabAI('tab5')">🤖 AI 分析 <span style="opacity:0.6;font-size:0.68rem">|</span> 🎯 授信組合矩陣</button>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><span class="icon">🎯</span> 授信組合 2×2 矩陣 / CREDIT PORTFOLIO MATRIX</div>
+            <div class="chart-container tall"><canvas id="canvasPortfolio" height="500"></canvas>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px;">
+              <div class="card-title"><span class="icon">🍩</span> 授信資源配置 / CREDIT ALLOCATION</div>
+              <div style="display:flex;justify-content:space-around;align-items:center;">
+                <div style="text-align:center;">
+                  <div style="font-size:10px;color:var(--text-dim);margin-bottom:6px;letter-spacing:1px;">目前配置</div>
+                  <svg id="svgAllocCurrent" width="150" height="150" viewBox="0 0 150 150"></svg>
+                </div>
+                <div style="font-size:20px;color:var(--text-dim);">→</div>
+                <div style="text-align:center;">
+                  <div style="font-size:10px;color:var(--text-dim);margin-bottom:6px;letter-spacing:1px;">建議配置</div>
+                  <svg id="svgAllocSuggested" width="150" height="150" viewBox="0 0 150 150"></svg>
+                </div>
+              </div>
+              <div id="allocLegend"
+                style="display:flex;justify-content:center;gap:12px;margin-top:10px;font-size:10px;flex-wrap:wrap;">
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-title"><span class="icon">💡</span> 最佳化收益預測 / OPTIMIZATION FORECAST</div>
+              <div style="font-size:13px;line-height:2;">
+                <div>📌 調整後信用成本率改善 <span style="color:var(--success);font-weight:700;">0.018%</span></div>
+                <div>📌 釋放問題客戶授信 <span style="color:var(--accent);font-weight:700;">$2.3M</span>，重配至明星客戶</div>
+                <div>📌 預計6個月回收改善 <span style="color:var(--success);font-weight:700;">$340K</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><span class="icon">📋</span> 客戶象限明細 / QUADRANT DETAIL</div>
+          <div style="margin-bottom:10px;">
+            <span class="filter-label">篩選象限：</span>
+            <select class="filter-select" id="filterQuadrant" onchange="renderPortfolioTable()">
+              <option value="all">全部</option>
+              <option value="star">⭐ 明星客戶</option>
+              <option value="potential">⚡ 潛力客戶</option>
+              <option value="stable">🔵 穩定客戶</option>
+              <option value="problem">❌ 問題客戶</option>
+            </select>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>客戶名稱</th>
+                <th>業績貢獻度</th>
+                <th>風險等級</th>
+                <th>當前授信額度</th>
+                <th>建議調整</th>
+                <th>象限</th>
+              </tr>
+            </thead>
+            <tbody id="portfolioBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===================== TAB 7: FORECAST ENGINE ===================== -->
+      <div class="tab-panel" id="tab6">
+        <!-- AI 分析按鈕列 -->
+        <div class="ai-tab-bar">
+          <button class="ai-tab-btn" onclick="triggerTabAI('tab6')">🤖 AI 分析 <span style="opacity:0.6;font-size:0.68rem">|</span> 🎛 預測引擎</button>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><span class="icon">🎛</span> 參數模擬面板 / WHAT-IF SIMULATION</div>
+            <div class="sim-slider-group">
+              <label>年化利率 <span id="simRateVal" style="color:var(--cyan);">6%</span></label>
+              <input type="range" id="sim-rate" min="3" max="15" step="0.5" value="6" oninput="simulateWhatIf()">
+            </div>
+            <div class="sim-slider-group">
+              <label>催收強度係數 <span id="simIntVal" style="color:var(--cyan);">1.0</span></label>
+              <input type="range" id="sim-intensity" min="0.5" max="2.0" step="0.1" value="1.0"
+                oninput="simulateWhatIf()">
+            </div>
+            <div class="sim-slider-group">
+              <label>模擬期間</label>
+              <div class="radio-group">
+                <label><input type="radio" name="sim-days" value="30" onchange="simulateWhatIf()"> 30天</label>
+                <label><input type="radio" name="sim-days" value="60" onchange="simulateWhatIf()" checked> 60天</label>
+                <label><input type="radio" name="sim-days" value="90" onchange="simulateWhatIf()"> 90天</label>
+              </div>
+            </div>
+            <div class="sim-result">
+              <div class="sim-result-item">
+                <div class="sim-label">模擬後成本率</div>
+                <div class="sim-val" id="simCostRate" style="color:var(--warning);">0.065%</div>
+              </div>
+              <div class="sim-result-item">
+                <div class="sim-label">預計壞帳損失</div>
+                <div class="sim-val" id="simBadDebt" style="color:var(--danger);">$1,135K</div>
+              </div>
+              <div class="sim-result-item">
+                <div class="sim-label">改善金額</div>
+                <div class="sim-val" id="simImprove" style="color:var(--success);">$0K</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="icon">📈</span> 30/60/90天預測帳齡趨勢 / FORECAST TREND</div>
+            <div class="chart-container tall"><canvas id="canvasForecast" height="300"></canvas></div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-title"><span class="icon">🌡</span> 客戶還款預測熱力圖 / PAYMENT HEATMAP</div>
+          <div class="chart-container tall"><canvas id="canvasHeatmap" height="300"></canvas></div>
+        </div>
+        <div class="grid-3">
+          <div class="scenario-card optimistic">
+            <div class="scenario-title" style="color:var(--success);">🟢 樂觀情境</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">高風險客戶30天內全數還款</div>
+            <div style="font-size:20px;font-weight:900;color:var(--success);">DSO 32天</div>
+            <div style="font-size:12px;margin-top:4px;">成本率 <span
+                style="color:var(--success);font-weight:700;">0.041%</span></div>
+          </div>
+          <div class="scenario-card baseline">
+            <div class="scenario-title" style="color:var(--warning);">🟡 基準情境</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">維持當前收款速度</div>
+            <div style="font-size:20px;font-weight:900;color:var(--warning);">DSO 42.5天</div>
+            <div style="font-size:12px;margin-top:4px;">成本率 <span
+                style="color:var(--warning);font-weight:700;">0.065%</span></div>
+          </div>
+          <div class="scenario-card pessimistic">
+            <div class="scenario-title" style="color:var(--danger);">🔴 悲觀情境</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">3家高風險客戶進一步逾期</div>
+            <div style="font-size:20px;font-weight:900;color:var(--danger);">DSO 51天</div>
+            <div style="font-size:12px;margin-top:4px;">成本率 <span
+                style="color:var(--danger);font-weight:700;">0.089%</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================== TAB 8: SALES ATTRIBUTION ===================== -->
+      <div class="tab-panel" id="tab7">
+        <!-- AI 分析按鈕列 -->
+        <div class="ai-tab-bar">
+          <button class="ai-tab-btn" onclick="triggerTabAI('tab7')">🤖 AI 分析 <span style="opacity:0.6;font-size:0.68rem">|</span> 🏆 業務歸因</button>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><span class="icon">🏆</span> 業務員績效排行榜 / SALESPERSON RANKING</div>
+            <div class="chart-container tall"><canvas id="canvasSalesBar" height="300"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="icon">🕸</span> 業務員信用管控雷達 / SALES RADAR</div>
+            <div class="chart-container radar" style="max-width:360px;margin:0 auto;"><canvas id="chartSalesRadar"
+                height="300"></canvas></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title"><span class="icon">🌡</span> 業務員 × 風險等級熱力矩陣 / SALES RISK HEAT</div>
+            <div class="chart-container"><canvas id="canvasSalesHeat" height="280"></canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title"><span class="icon">📋</span> 業務員績效摘要 / PERFORMANCE SUMMARY</div>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>業務員</th>
+                  <th>客戶數</th>
+                  <th>總應收</th>
+                  <th>加權帳齡</th>
+                  <th>高危客戶</th>
+                  <th>成本率</th>
+                  <th>評級</th>
+                </tr>
+              </thead>
+              <tbody id="salesBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /main-content -->
+
+    <!-- ===== PARAMETER PANEL OVERLAY ===== -->
+    <div class="param-overlay" id="paramOverlay" onclick="closeParamIfOutside(event)">
+      <div class="param-panel" onclick="event.stopPropagation()">
+        <h3>⚙ 參數調整 / PARAMETER SETTINGS</h3>
+        <div class="param-group">
+          <label>年化利率 (%) <span class="param-val" id="pRate">6.0%</span></label>
+          <input type="range" id="paramRate" min="1" max="15" step="0.5" value="6" oninput="updateParam()">
+        </div>
+        <div class="param-group">
+          <label>壞帳準備率 - 未逾期 (%) <span class="param-val" id="pBD0">0.5%</span></label>
+          <input type="range" id="paramBD0" min="0" max="5" step="0.1" value="0.5" oninput="updateParam()">
+        </div>
+        <div class="param-group">
+          <label>壞帳準備率 - 1-30天 (%) <span class="param-val" id="pBD1">2%</span></label>
+          <input type="range" id="paramBD1" min="0" max="10" step="0.5" value="2" oninput="updateParam()">
+        </div>
+        <div class="param-group">
+          <label>壞帳準備率 - 31-90天 (%) <span class="param-val" id="pBD2">5%</span></label>
+          <input type="range" id="paramBD2" min="0" max="20" step="0.5" value="5" oninput="updateParam()">
+        </div>
+        <div class="param-group">
+          <label>壞帳準備率 - 91-365天 (%) <span class="param-val" id="pBD3">15%</span></label>
+          <input type="range" id="paramBD3" min="0" max="50" step="1" value="15" oninput="updateParam()">
+        </div>
+        <div class="param-group">
+          <label>壞帳準備率 - 365天以上 (%) <span class="param-val" id="pBD4">50%</span></label>
+          <input type="range" id="paramBD4" min="0" max="100" step="1" value="50" oninput="updateParam()">
+        </div>
+        <div style="margin-top:16px;text-align:right;">
+          <button class="toolbar-btn primary" onclick="applyParams()">✅ 套用並重新計算</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <div class="footer">
+      AR 量子智慧戰情室 V5.0 QUANTUM HYPERION EDITION &copy; 2026 |
+      <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">Created with Perplexity
+        Computer</a>
+    </div>
+
+  </div><!-- /app-wrapper -->
+
+  <!-- ================================================================
+       AR V5.0 — AI 分析助手 側邊滑出面板
+  ================================================================ -->
+  <div id="ai-panel">
+    <!-- 面板 Header -->
+    <div class="ai-panel-header">
+      <div class="ai-panel-title">
+        🤖 <span>AR AI 分析助手</span>
+        <span class="ai-status-badge idle" id="ai-status-badge">未連線</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="ai-context-label" style="font-size:0.68rem;color:var(--cyan);background:rgba(0,212,255,0.08);padding:2px 8px;border-radius:8px;font-weight:600;">📊 應收概況</span>
+        <button class="ai-panel-close" onclick="closeAIPanel()" title="關閉">✕</button>
+      </div>
+    </div>
+
+    <!-- 設定區 -->
+    <div class="ai-settings">
+      <div class="ai-settings-row">
+        <label>供應商</label>
+        <select id="ai-provider" onchange="onProviderChange()">
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic</option>
+          <option value="google">Google</option>
+          <option value="custom">自訂端點</option>
+        </select>
+        <select id="ai-model" style="flex:1.2;">
+          <option value="gpt-4o">gpt-4o</option>
+        </select>
+      </div>
+      <div class="ai-settings-row" id="ai-custom-url-row" style="display:none;">
+        <label>端點URL</label>
+        <input type="text" id="ai-custom-url" placeholder="https://…/v1">
+      </div>
+      <div class="ai-settings-row" id="ai-custom-model-row" style="display:none;">
+        <label>模型名稱</label>
+        <input type="text" id="ai-custom-model" placeholder="輸入模型名稱">
+      </div>
+      <div class="ai-settings-row" id="ai-api-format-row" style="display:none;">
+        <label>API格式</label>
+        <select id="ai-api-format">
+          <option value="openai">OpenAI 格式</option>
+          <option value="anthropic">Anthropic 格式</option>
+        </select>
+      </div>
+      <div class="ai-settings-row">
+        <label>API Key</label>
+        <div class="ai-key-wrap">
+          <input type="password" id="ai-apikey" placeholder="輸入 API Key…">
+          <button id="ai-toggle-key" onclick="toggleKeyVisibility()">👁</button>
+        </div>
+      </div>
+      <div class="ai-settings-row">
+        <label>溫度</label>
+        <input type="range" id="ai-temp" min="0" max="1" step="0.05" value="0.3"
+               oninput="document.getElementById('ai-temp-val').textContent=this.value;arAiState.temperature=parseFloat(this.value);">
+        <span id="ai-temp-val" style="width:26px;text-align:right;">0.3</span>
+        <select id="ai-max-tokens" style="width:80px;flex:none;">
+          <option value="2048">2K</option>
+          <option value="4096" selected>4K</option>
+          <option value="8192">8K</option>
+          <option value="16384">16K</option>
+        </select>
+        <select id="ai-stream-mode" style="width:64px;flex:none;">
+          <option value="1">串流</option>
+          <option value="0">一次</option>
+        </select>
+      </div>
+      <div class="ai-settings-row" style="margin-top:2px;">
+        <button onclick="saveAISettings()" style="font-size:0.68rem;padding:3px 10px;border-radius:6px;background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.25);color:var(--accent);cursor:pointer;">💾 儲存設定</button>
+        <button onclick="clearAISavedSettings()" style="font-size:0.68rem;padding:3px 10px;border-radius:6px;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.18);color:var(--danger);cursor:pointer;" title="清除已儲存設定">🗑 清除</button>
+        <span class="ai-save-hint" id="ai-save-hint">✓ 已儲存</span>
+        <span id="ai-token-hint" style="font-size:0.62rem;color:var(--text-dim);margin-left:auto;"></span>
+      </div>
+    </div>
+
+    <!-- 對話區 -->
+    <div id="ai-messages">
+      <div class="ai-welcome">
+        <div class="ai-welcome-icon">🤖</div>
+        <p>您好！我是 AR 量子智慧戰情室的 AI 分析助手。</p>
+        <p style="margin-top:6px;">請設定 API Key，<br>然後點擊任一頁籤的 <strong style="color:var(--accent)">🤖 AI 分析</strong> 按鈕，<br>或直接在下方提問。</p>
+        <button onclick="restoreAIChat()" id="ai-restore-btn"
+          style="display:none;margin-top:12px;font-size:0.72rem;padding:5px 14px;border-radius:8px;
+          background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.22);
+          color:var(--accent);cursor:pointer">🕐 還原上次對話</button>
+      </div>
+    </div>
+
+    <!-- 輸入區 -->
+    <div class="ai-input-area">
+      <div class="ai-input-row">
+        <textarea id="ai-input" placeholder="輸入問題… (Ctrl+Enter 送出)" rows="3"
+          onkeydown="if(event.ctrlKey&&event.key==='Enter')sendAIMessage()"></textarea>
+      </div>
+      <div class="ai-input-actions">
+        <button class="ai-send-btn" id="ai-send-btn" onclick="sendAIMessage()">發送</button>
+        <button class="ai-clear-btn" onclick="clearAIChat()" title="清除對話">🗑</button>
+        <button onclick="exportAIChat()" style="font-size:0.67rem;padding:3px 10px;border-radius:6px;background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.18);color:var(--text-dim);cursor:pointer;" title="下載 Markdown 檔案">⬇ 匯出MD</button>
+        <button onclick="copyAllChat()" style="font-size:0.67rem;padding:3px 10px;border-radius:6px;background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.18);color:var(--text-dim);cursor:pointer;" title="複製全部對話">📋 全部複製</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI 面板浮動觸發按鈕 -->
+  <button id="ai-panel-toggle" onclick="toggleAIPanel()" title="AI 分析助手 (Ctrl+Shift+A)">
+    <span style="writing-mode:vertical-rl;font-size:0.72rem;font-weight:700;letter-spacing:1px;">AI助手</span>
+    🤖
+  </button>
+
+  <script>
+    // ================================================================
+    // DATA
+    // ================================================================
+    const DEFAULT_CLIENTS = [
+      { name: '三星電子-行動部門', city: 'kaohsiung', bal: 12.5, aging: 45, rate: 0.025, risk: 'critical', loss: 625, strategy: '現款結算', revenue: 38.2, transactions: 8, creditScore: 28, salesperson: '張三', lifecycle: 'declining' },
+      { name: '環球晶圓(股)', city: 'hsinchu', bal: 8.2, aging: 38, rate: 0.015, risk: 'high', loss: 246, strategy: '立即清收', revenue: 24.1, transactions: 12, creditScore: 42, salesperson: '李四', lifecycle: 'declining' },
+      { name: '宏碁資訊服務', city: 'taipei', bal: 4.1, aging: 28, rate: 0.008, risk: 'mid', loss: 82, strategy: '加強催收', revenue: 18.5, transactions: 6, creditScore: 65, salesperson: '王五', lifecycle: 'growing' },
+      { name: '日月光半導體', city: 'kaohsiung', bal: 6.3, aging: 22, rate: 0.006, risk: 'mid', loss: 94, strategy: '加強催收', revenue: 28.3, transactions: 9, creditScore: 72, salesperson: '趙六', lifecycle: 'growing' },
+      { name: '聯發科技', city: 'hsinchu', bal: 5.8, aging: 18, rate: 0.003, risk: 'low', loss: 29, strategy: '維持現狀', revenue: 35.6, transactions: 15, creditScore: 82, salesperson: '李四', lifecycle: 'mature' },
+      { name: '台積電', city: 'hsinchu', bal: 9.2, aging: 12, rate: 0.0008, risk: 'safe', loss: 0, strategy: '提升授信', revenue: 58.4, transactions: 22, creditScore: 96, salesperson: '張三', lifecycle: 'mature' },
+      { name: '華碩電腦', city: 'taipei', bal: 2.8, aging: 8, rate: 0.001, risk: 'safe', loss: 0, strategy: '提升授信', revenue: 12.3, transactions: 3, creditScore: 78, salesperson: '陳七', lifecycle: 'new' },
+      { name: '鴻海精密', city: 'taipei', bal: 3.4, aging: 25, rate: 0.004, risk: 'low', loss: 17, strategy: '維持現狀', revenue: 22.8, transactions: 18, creditScore: 88, salesperson: '王五', lifecycle: 'mature' },
+      { name: '廣達電腦', city: 'taichung', bal: 2.1, aging: 32, rate: 0.009, risk: 'mid', loss: 42, strategy: '加強催收', revenue: 14.2, transactions: 7, creditScore: 61, salesperson: '趙六', lifecycle: 'growing' },
+      { name: '仁寶電腦', city: 'taichung', bal: 1.8, aging: 15, rate: 0.002, risk: 'safe', loss: 0, strategy: '提升授信', revenue: 10.4, transactions: 11, creditScore: 85, salesperson: '陳七', lifecycle: 'mature' },
+    ];
+
+    let CLIENTS = JSON.parse(JSON.stringify(DEFAULT_CLIENTS));
+    let PARAMS = { rate: 6, bd: [0.5, 2, 5, 15, 50] };
+    let currentRiskFilter = 'all';
+    let chartInstances = {};
+
+    // ================================================================
+    // UTILITY FUNCTIONS
+    // ================================================================
+    function getFilteredClients() {
+      let list = CLIENTS;
+      const city = document.getElementById('filterCity').value;
+      if (city !== 'all') list = list.filter(c => c.city === city);
+      if (currentRiskFilter !== 'all') list = list.filter(c => c.risk === currentRiskFilter);
+      return list;
+    }
+
+    function fmtM(v) { return '$' + v.toFixed(2) + 'M'; }
+    function fmtK(v) { return '$' + Math.round(v) + 'K'; }
+    function fmtPct(v) { return (v * 100).toFixed(3) + '%'; }
+
+    const RISK_COLORS = { safe: '#2ed573', low: '#00d4ff', mid: '#ffa502', high: '#a855f7', critical: '#ff4757' };
+    const RISK_LABELS = { safe: '無風險', low: '低風險', mid: '中風險', high: '高風險', critical: '超高風險' };
+    const RISK_ORDER = ['safe', 'low', 'mid', 'high', 'critical'];
+    const LC_COLORS = { new: '#00d4ff', growing: '#2ed573', mature: '#ffd700', declining: '#ff4757' };
+    const LC_LABELS = { new: '新客戶期', growing: '成長期', mature: '成熟期', declining: '衰退期' };
+
+    const SP_COLORS = { '張三': '#ffd700', '李四': '#00d4ff', '王五': '#a855f7', '趙六': '#2ed573', '陳七': '#ff6b81' };
+
+    function cityLabel(c) {
+      return { taipei: '台北', hsinchu: '新竹', taichung: '台中', kaohsiung: '高雄' }[c] || c;
+    }
+
+    // ================================================================
+    // CLOCK
+    // ================================================================
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString('zh-TW', { hour12: false });
+      document.getElementById('clockDate').textContent = now.toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'short' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ================================================================
+    // PARTICLES
+    // ================================================================
+    (function initParticles() {
+      const canvas = document.getElementById('particleCanvas');
+      const ctx = canvas.getContext('2d');
+      let particles = [];
+      function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+      window.addEventListener('resize', resize); resize();
+      for (let i = 0; i < 60; i++) {
+        particles.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, vx: (Math.random() - 0.5) * 0.3, vy: (Math.random() - 0.5) * 0.3, r: Math.random() * 1.5 + 0.5, a: Math.random() * 0.3 + 0.1 });
+      }
+      function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0) p.x = canvas.width; if (p.x > canvas.width) p.x = 0;
+          if (p.y < 0) p.y = canvas.height; if (p.y > canvas.height) p.y = 0;
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(255,215,0,${p.a})`; ctx.fill();
+        });
+        // Draw lines between close particles
+        for (let i = 0; i < particles.length; i++) for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 120) { ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y); ctx.strokeStyle = `rgba(255,215,0,${0.05 * (1 - dist / 120)})`; ctx.stroke(); }
+        }
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    // ================================================================
+    // TAB SWITCHING
+    // ================================================================
+    let currentTab = 0;
+    function switchTab(idx) {
+      currentTab = idx;
+      document.querySelectorAll('.tab-item').forEach((t, i) => t.classList.toggle('active', i === idx));
+      document.querySelectorAll('.tab-panel').forEach((p, i) => p.classList.toggle('active', i === idx));
+      setTimeout(() => drawAll(), 50);
+    }
+
+    // ================================================================
+    // FILTER
+    // ================================================================
+    function setRiskFilter(btn) {
+      document.querySelectorAll('#riskToggle .toggle-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentRiskFilter = btn.dataset.risk;
+      applyFilters();
+    }
+    function applyFilters() { drawAll(); }
+
+    // ================================================================
+    // TOOLBAR FUNCTIONS
+    // ================================================================
+    function exportJSON() {
+      const blob = new Blob([JSON.stringify(CLIENTS, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+      a.download = 'AR_Data_V5.json'; a.click();
+    }
+    function resetDefaults() {
+      CLIENTS = JSON.parse(JSON.stringify(DEFAULT_CLIENTS));
+      PARAMS = { rate: 6, bd: [0.5, 2, 5, 15, 50] };
+      drawAll();
+    }
+    function toggleParamPanel() {
+      document.getElementById('paramOverlay').classList.toggle('show');
+    }
+    function closeParamIfOutside(e) {
+      if (e.target === document.getElementById('paramOverlay'))
+        document.getElementById('paramOverlay').classList.remove('show');
+    }
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') document.getElementById('paramOverlay').classList.remove('show');
+    });
+    function updateParam() {
+      document.getElementById('pRate').textContent = document.getElementById('paramRate').value + '%';
+      document.getElementById('pBD0').textContent = document.getElementById('paramBD0').value + '%';
+      document.getElementById('pBD1').textContent = document.getElementById('paramBD1').value + '%';
+      document.getElementById('pBD2').textContent = document.getElementById('paramBD2').value + '%';
+      document.getElementById('pBD3').textContent = document.getElementById('paramBD3').value + '%';
+      document.getElementById('pBD4').textContent = document.getElementById('paramBD4').value + '%';
+    }
+    function applyParams() {
+      PARAMS.rate = parseFloat(document.getElementById('paramRate').value);
+      PARAMS.bd = [
+        parseFloat(document.getElementById('paramBD0').value),
+        parseFloat(document.getElementById('paramBD1').value),
+        parseFloat(document.getElementById('paramBD2').value),
+        parseFloat(document.getElementById('paramBD3').value),
+        parseFloat(document.getElementById('paramBD4').value),
+      ];
+      document.getElementById('paramOverlay').classList.remove('show');
+      drawAll();
+    }
+
+    // ================================================================
+    // EXCEL IMPORT (SheetJS)
+    // ================================================================
+    document.getElementById('fileInput').addEventListener('change', function (e) {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        try {
+          const wb = XLSX.read(ev.target.result, { type: 'array' });
+          const ws = wb.Sheets[wb.SheetNames[0]];
+          const data = XLSX.utils.sheet_to_json(ws);
+          if (data.length > 0) {
+            CLIENTS = data.map(r => ({
+              name: r['客戶名稱'] || r.name || '',
+              city: (r['城市'] || r.city || 'taipei').toLowerCase(),
+              bal: parseFloat(r['應收餘額'] || r.bal || 0),
+              aging: parseInt(r['帳齡'] || r.aging || 0),
+              rate: parseFloat(r['壞帳率'] || r.rate || 0),
+              risk: r['風險等級'] || r.risk || 'safe',
+              loss: parseFloat(r['預計壞帳'] || r.loss || 0),
+              strategy: r['策略'] || r.strategy || '',
+              revenue: parseFloat(r['營收'] || r.revenue || 0),
+              transactions: parseInt(r['交易筆數'] || r.transactions || 0),
+              creditScore: parseInt(r['信用評分'] || r.creditScore || 50),
+              salesperson: r['業務員'] || r.salesperson || '',
+              lifecycle: r['生命週期'] || r.lifecycle || 'new',
+            }));
+            drawAll();
+            alert('✅ 匯入成功！已載入 ' + CLIENTS.length + ' 筆客戶資料');
+          }
+        } catch (err) { alert('❌ 匯入失敗：' + err.message); }
+      };
+      reader.readAsArrayBuffer(file);
+      e.target.value = '';
+    });
+
+    // ================================================================
+    // COLLAPSIBLE
+    // ================================================================
+    function toggleCollapse(el) {
+      const content = el.nextElementSibling;
+      const isOpen = content.classList.contains('open');
+      content.classList.toggle('open');
+      el.querySelector('span').textContent = isOpen ? '▶' : '▼';
+    }
+
+    // ================================================================
+    // TABLE SORT
+    // ================================================================
+    let sortDirections = {};
+    function sortTable(tbodyId, colIdx) {
+      const key = tbodyId + '_' + colIdx;
+      sortDirections[key] = !sortDirections[key];
+      const tbody = document.getElementById(tbodyId);
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      rows.sort((a, b) => {
+        let va = a.cells[colIdx].textContent.replace(/[$,%M,K]/g, '').trim();
+        let vb = b.cells[colIdx].textContent.replace(/[$,%M,K]/g, '').trim();
+        let na = parseFloat(va), nb = parseFloat(vb);
+        if (!isNaN(na) && !isNaN(nb)) return sortDirections[key] ? na - nb : nb - na;
+        return sortDirections[key] ? va.localeCompare(vb) : vb.localeCompare(va);
+      });
+      rows.forEach(r => tbody.appendChild(r));
+    }
+
+    // ================================================================
+    // THEME TOGGLE
+    // ================================================================
+    let isDarkMode = true;
+
+    function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      const html = document.documentElement;
+      const btn = document.getElementById('themeToggleBtn');
+      if (isDarkMode) {
+        html.removeAttribute('data-theme');
+        btn.textContent = '🌙 暗色模式';
+      } else {
+        html.setAttribute('data-theme', 'light');
+        btn.textContent = '☀️ 亮色模式';
+      }
+      // 重繪所有 Canvas 圖表以套用正確顏色
+      setTimeout(() => drawAll(), 30);
+    }
+
+    // 取得目前主題的 Canvas 文字顏色
+    function tc() { return isDarkMode ? '#e8e8f0' : '#1a1a2a'; }
+    function tc2() { return isDarkMode ? '#8888aa' : '#64748b'; }
+    function gridColor() { return isDarkMode ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)'; }
+    function cardBg() { return isDarkMode ? '#0e0e1a' : '#ffffff'; }
+
+    // ================================================================
+    // DRAW ALL
+    // ================================================================
+    function drawAll() {
+      const clients = getFilteredClients();
+      drawOverview(clients);
+      drawAging(clients);
+      drawRisk(clients);
+      drawCollection(clients);
+      drawLifecycle(clients);
+      drawPortfolio(clients);
+      drawForecast(clients);
+      drawSales(clients);
+    }
+
+    // ================================================================
+    // TAB 1: AR OVERVIEW
+    // ================================================================
+    function drawOverview(clients) {
+      const totalBal = clients.reduce((s, c) => s + c.bal, 0);
+      const totalRev = clients.reduce((s, c) => s + c.revenue, 0);
+      const arRatio = totalBal / totalRev;
+      const turnover = totalRev / totalBal;
+      const waa = clients.reduce((s, c) => s + c.bal * c.aging, 0) / totalBal;
+      const dso = (totalBal / totalRev) * 365;
+      const creditCost = clients.reduce((s, c) => s + c.bal * c.aging * (PARAMS.rate / 100) / 365, 0) * 1000;
+      const creditRate = creditCost / (totalRev * 1000);
+      const totalLoss = clients.reduce((s, c) => s + c.loss, 0);
+
+      document.getElementById('kpi-arBal').textContent = fmtM(totalBal);
+      document.getElementById('kpi-rev').textContent = fmtM(totalRev);
+      document.getElementById('kpi-arRatio').textContent = (arRatio * 100).toFixed(1) + '%';
+      document.getElementById('kpi-turnover').textContent = turnover.toFixed(1) + 'x';
+      document.getElementById('kpi-dso').textContent = dso.toFixed(1) + '天';
+      document.getElementById('kpi-waa').textContent = waa.toFixed(1) + '天';
+      document.getElementById('kpi-creditCost').textContent = fmtK(creditCost);
+      document.getElementById('kpi-creditRate').textContent = (creditRate * 100).toFixed(3) + '%';
+      document.getElementById('hsTotalAR').textContent = fmtM(totalBal);
+
+      // AR & DSO Trend (Chart.js)
+      const months = ['2025/10', '2025/11', '2025/12', '2026/01', '2026/02', '2026/03'];
+      const arData = [42.1, 43.5, 44.8, 45.2, 44.6, totalBal];
+      const dsoData = [44.2, 43.8, 43.1, 42.8, 42.6, dso];
+      if (chartInstances.arTrend) chartInstances.arTrend.destroy();
+      chartInstances.arTrend = new Chart(document.getElementById('chartARTrend'), {
+        type: 'line',
+        data: {
+          labels: months,
+          datasets: [
+            { label: '應收餘額($M)', data: arData, borderColor: isDarkMode ? '#ffd700' : '#c8960c', backgroundColor: isDarkMode ? 'rgba(255,215,0,0.1)' : 'rgba(200,150,12,0.1)', fill: true, tension: 0.3, yAxisID: 'y' },
+            { label: 'DSO(天)', data: dsoData, borderColor: isDarkMode ? '#00d4ff' : '#0077aa', borderDash: [5, 5], fill: false, tension: 0.3, yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: tc2(), font: { size: 10 } } } },
+          scales: {
+            x: { ticks: { color: tc2(), font: { size: 10 } }, grid: { color: gridColor() } },
+            y: { position: 'left', ticks: { color: isDarkMode ? '#ffd700' : '#c8960c', font: { size: 10 }, callback: v => '$' + v + 'M' }, grid: { color: gridColor() } },
+            y1: { position: 'right', ticks: { color: isDarkMode ? '#00d4ff' : '#0077aa', font: { size: 10 }, callback: v => v + '天' }, grid: { display: false } }
+          }
+        }
+      });
+
+      // Bad debt ratio
+      document.getElementById('bdRatio').textContent = (totalLoss / (totalBal * 1000) * 100).toFixed(2) + '%';
+
+      // Credit Score Donut (SVG)
+      drawCreditDonut(clients);
+    }
+
+    function drawCreditDonut(clients) {
+      const svg = document.getElementById('svgCreditDonut');
+      const legend = document.getElementById('creditDonutLegend');
+      const buckets = [
+        { label: '優秀(80+)', color: '#2ed573', count: clients.filter(c => c.creditScore >= 80).length },
+        { label: '良好(60-79)', color: '#00d4ff', count: clients.filter(c => c.creditScore >= 60 && c.creditScore < 80).length },
+        { label: '注意(40-59)', color: '#ffa502', count: clients.filter(c => c.creditScore >= 40 && c.creditScore < 60).length },
+        { label: '危險(<40)', color: '#ff4757', count: clients.filter(c => c.creditScore < 40).length },
+      ];
+      const total = buckets.reduce((s, b) => s + b.count, 0) || 1;
+      let angle = -Math.PI / 2;
+      const cx = 90, cy = 90, r = 60, r2 = 40;
+      let paths = '';
+      buckets.forEach(b => {
+        if (b.count === 0) return;
+        const sweep = (b.count / total) * Math.PI * 2;
+        const x1 = cx + r * Math.cos(angle), y1 = cy + r * Math.sin(angle);
+        const x2 = cx + r * Math.cos(angle + sweep), y2 = cy + r * Math.sin(angle + sweep);
+        const x3 = cx + r2 * Math.cos(angle + sweep), y3 = cy + r2 * Math.sin(angle + sweep);
+        const x4 = cx + r2 * Math.cos(angle), y4 = cy + r2 * Math.sin(angle);
+        const large = sweep > Math.PI ? 1 : 0;
+        paths += `<path d="M${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} L${x3},${y3} A${r2},${r2} 0 ${large} 0 ${x4},${y4} Z" fill="${b.color}" opacity="0.8"/>`;
+        angle += sweep;
+      });
+      svg.innerHTML = paths + `<text x="${cx}" y="${cy - 4}" text-anchor="middle" fill="${tc()}" font-size="18" font-weight="900">${total}</text><text x="${cx}" y="${cy + 12}" text-anchor="middle" fill="${tc2()}" font-size="9">客戶</text>`;
+      legend.innerHTML = buckets.map(b => `<span style="color:${b.color};">● ${b.label}: ${b.count}</span>`).join('');
+    }
+
+    // ================================================================
+    // TAB 2: AGING CONTROL
+    // ================================================================
+    function drawAging(clients) {
+      const totalBal = clients.reduce((s, c) => s + c.bal, 0) || 1;
+      const waa = clients.reduce((s, c) => s + c.bal * c.aging, 0) / totalBal;
+      document.getElementById('bigWAA').textContent = waa.toFixed(1);
+
+      // Stacked aging trend (Chart.js 100% stacked)
+      const months = ['2025/10', '2025/11', '2025/12', '2026/01', '2026/02', '2026/03'];
+      const stackData = [
+        { label: '未逾期', data: [48, 47, 46, 45, 45.5, 45.4], backgroundColor: 'rgba(46,213,115,0.7)' },
+        { label: '1-30天', data: [22, 22.5, 23, 23, 22.8, 22.7], backgroundColor: 'rgba(0,212,255,0.7)' },
+        { label: '31-90天', data: [16, 16.5, 17, 17.5, 17.2, 17.4], backgroundColor: 'rgba(255,165,2,0.7)' },
+        { label: '91-365天', data: [10, 10, 10, 10.2, 10.3, 10.2], backgroundColor: 'rgba(168,85,247,0.7)' },
+        { label: '365天+', data: [4, 4, 4, 4.3, 4.2, 4.3], backgroundColor: 'rgba(255,71,87,0.7)' },
+      ];
+      if (chartInstances.agingStack) chartInstances.agingStack.destroy();
+      chartInstances.agingStack = new Chart(document.getElementById('chartAgingStack'), {
+        type: 'bar',
+        data: { labels: months, datasets: stackData },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { labels: { color: tc2(), font: { size: 10 } } },
+            tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y + '%' } }
+          },
+          scales: {
+            x: { stacked: true, ticks: { color: tc2(), font: { size: 10 } }, grid: { color: gridColor() } },
+            y: { stacked: true, max: 100, ticks: { color: tc2(), font: { size: 10 }, callback: v => v + '%' }, grid: { color: gridColor() } }
+          }
+        }
+      });
+
+      // Aging bar chart
+      const sorted = [...clients].sort((a, b) => b.aging - a.aging);
+      if (chartInstances.agingBar) chartInstances.agingBar.destroy();
+      chartInstances.agingBar = new Chart(document.getElementById('chartAgingBar'), {
+        type: 'bar',
+        data: {
+          labels: sorted.map(c => c.name),
+          datasets: [{
+            label: '帳齡(天)',
+            data: sorted.map(c => c.aging),
+            backgroundColor: sorted.map(c => RISK_COLORS[c.risk] + 'cc'),
+            borderRadius: 4,
+          }]
+        },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: tc2(), font: { size: 10 } }, grid: { color: gridColor() } },
+            y: { ticks: { color: tc(), font: { size: 10 } }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    // ================================================================
+    // TAB 3: RISK MGMT
+    // ================================================================
+    function drawRisk(clients) {
+      // Radar
+      const dims = ['帳齡風險', '金額集中度', '壞帳率', '逾期趨勢', '信用評分反轉'];
+      const totalBal = clients.reduce((s, c) => s + c.bal, 0) || 1;
+      const radarData = [
+        clients.reduce((s, c) => s + c.aging, 0) / clients.length / 50 * 100,
+        Math.max(...clients.map(c => c.bal)) / totalBal * 100 * 2,
+        clients.reduce((s, c) => s + c.rate, 0) / clients.length * 100 * 20,
+        clients.filter(c => c.aging > 30).length / clients.length * 100,
+        (100 - clients.reduce((s, c) => s + c.creditScore, 0) / clients.length),
+      ].map(v => Math.min(v, 100));
+
+      if (chartInstances.riskRadar) chartInstances.riskRadar.destroy();
+      chartInstances.riskRadar = new Chart(document.getElementById('chartRiskRadar'), {
+        type: 'radar',
+        data: {
+          labels: dims,
+          datasets: [{
+            label: '風險指數',
+            data: radarData,
+            borderColor: '#ff4757',
+            backgroundColor: 'rgba(255,71,87,0.15)',
+            pointBackgroundColor: '#ff4757',
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: tc2(), font: { size: 10 } } } },
+          scales: {
+            r: {
+              min: 0, max: 100,
+              angleLines: { color: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)' },
+              grid: { color: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' },
+              pointLabels: { color: tc(), font: { size: 10 } },
+              ticks: { display: false }
+            }
+          }
+        }
+      });
+
+      // Bubble matrix (Canvas)
+      drawBubbleMatrix(clients);
+
+      // Risk classification table
+      const tbody = document.getElementById('riskMatrixBody');
+      const strategies = { safe: '提升授信，維持優質合作', low: '維持現狀，定期評估', mid: '加強催收，縮短付款條件', high: '限制出貨，立即催收', critical: '現款結算，法律途徑' };
+      const bdRates = { safe: '0.5%', low: '1%', mid: '3%', high: '8%', critical: '20%' };
+      tbody.innerHTML = RISK_ORDER.map(r => {
+        const rc = clients.filter(c => c.risk === r);
+        const bal = rc.reduce((s, c) => s + c.bal, 0);
+        const totalAll = clients.reduce((s, c) => s + c.bal, 0) || 1;
+        return `<tr>
+      <td><span class="badge badge-${r}">${RISK_LABELS[r]}</span></td>
+      <td>${rc.length}</td>
+      <td>${fmtM(bal)}</td>
+      <td>${(bal / totalAll * 100).toFixed(1)}%</td>
+      <td>${bdRates[r]}</td>
+      <td style="font-size:11px;">${strategies[r]}</td>
+    </tr>`;
+      }).join('');
+
+      // Risk detail table
+      const detailBody = document.getElementById('riskDetailBody');
+      detailBody.innerHTML = clients.map(c => `<tr>
+    <td>${c.name}</td>
+    <td>${cityLabel(c.city)}</td>
+    <td>${fmtM(c.bal)}</td>
+    <td>${c.aging}</td>
+    <td>${(c.rate * 100).toFixed(2)}%</td>
+    <td><span class="badge badge-${c.risk}">${RISK_LABELS[c.risk]}</span></td>
+    <td style="font-size:11px;">${c.strategy}</td>
+  </tr>`).join('');
+    }
+
+    function drawBubbleMatrix(clients) {
+      const canvas = document.getElementById('canvasBubble');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width = canvas.parentElement.clientWidth;
+      const H = canvas.height = 300;
+      ctx.clearRect(0, 0, W, H);
+
+      const pad = { top: 20, right: 20, bottom: 40, left: 50 };
+      const cw = W - pad.left - pad.right;
+      const ch = H - pad.top - pad.bottom;
+
+      // Axes
+      ctx.strokeStyle = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.12)';
+      ctx.beginPath(); ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, H - pad.bottom); ctx.lineTo(W - pad.right, H - pad.bottom); ctx.stroke();
+      ctx.fillStyle = tc2(); ctx.font = '10px Inter';
+      ctx.textAlign = 'center';
+      ctx.fillText('帳齡天數 →', W / 2, H - 8);
+      ctx.save(); ctx.translate(12, H / 2); ctx.rotate(-Math.PI / 2);
+      ctx.fillText('應收餘額($M) →', 0, 0); ctx.restore();
+
+      const maxAging = Math.max(...clients.map(c => c.aging), 50);
+      const maxBal = Math.max(...clients.map(c => c.bal), 15);
+      const maxLoss = Math.max(...clients.map(c => c.loss), 100);
+
+      clients.forEach(c => {
+        const x = pad.left + (c.aging / maxAging) * cw;
+        const y = pad.top + ch - (c.bal / maxBal) * ch;
+        const r = Math.max(6, Math.sqrt(c.loss / maxLoss) * 30);
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.fillStyle = RISK_COLORS[c.risk] + '66'; ctx.fill();
+        ctx.strokeStyle = RISK_COLORS[c.risk]; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.fillStyle = tc(); ctx.font = '9px Inter'; ctx.textAlign = 'center';
+        ctx.fillText(c.name.substring(0, 4), x, y - r - 4);
+      });
+
+      // Axis ticks
+      ctx.fillStyle = tc2(); ctx.font = '9px Inter'; ctx.textAlign = 'center';
+      for (let i = 0; i <= 5; i++) {
+        const v = Math.round(maxAging / 5 * i);
+        const x = pad.left + (v / maxAging) * cw;
+        ctx.fillText(v, x, H - pad.bottom + 14);
+      }
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= 4; i++) {
+        const v = (maxBal / 4 * i).toFixed(1);
+        const y = pad.top + ch - (i / 4) * ch;
+        ctx.fillText('$' + v + 'M', pad.left - 6, y + 3);
+      }
+    }
+
+    // ================================================================
+    // TAB 4: COLLECTION
+    // ================================================================
+    function drawCollection(clients) {
+      const sorted = [...clients].map(c => ({ ...c, urgency: c.loss * Math.max(c.aging - 15, 0) / 1000 }))
+        .sort((a, b) => b.urgency - a.urgency);
+      const tbody = document.getElementById('collectionBody');
+      tbody.innerHTML = sorted.map((c, i) => `<tr>
+    <td style="font-weight:700;color:${i < 3 ? 'var(--danger)' : 'var(--text-dim)'};">#${i + 1}</td>
+    <td>${c.name}</td>
+    <td style="color:var(--warning);font-weight:700;">${c.urgency.toFixed(1)}</td>
+    <td>${fmtK(c.loss)}</td>
+    <td>${c.aging}</td>
+    <td style="font-size:11px;">${c.strategy}</td>
+  </tr>`).join('');
+
+      // Gauge SVG
+      drawGauge();
+    }
+
+    function drawGauge() {
+      const svg = document.getElementById('svgGauge');
+      const totalBal = CLIENTS.reduce((s, c) => s + c.bal, 0);
+      const totalRev = CLIENTS.reduce((s, c) => s + c.revenue, 0);
+      const creditCost = CLIENTS.reduce((s, c) => s + c.bal * c.aging * (PARAMS.rate / 100) / 365, 0) * 1000;
+      const rate = creditCost / (totalRev * 1000);
+      const pct = Math.min(rate / 0.001, 1); // 0~0.1% scale
+
+      const cx = 110, cy = 110, r = 80;
+      const startAngle = Math.PI, endAngle = 2 * Math.PI;
+      const sweepAngle = startAngle + pct * (endAngle - startAngle);
+
+      function polarToXY(angle) { return { x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) }; }
+
+      // Background arc
+      const bgEnd = polarToXY(endAngle);
+      const bgStart = polarToXY(startAngle);
+      let html = `<path d="M${bgStart.x},${bgStart.y} A${r},${r} 0 1 1 ${bgEnd.x},${bgEnd.y}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="14" stroke-linecap="round"/>`;
+
+      // Value arc
+      const valEnd = polarToXY(sweepAngle);
+      const large = (sweepAngle - startAngle > Math.PI) ? 1 : 0;
+      const color = pct < 0.5 ? '#2ed573' : pct < 0.75 ? '#ffa502' : '#ff4757';
+      html += `<path d="M${bgStart.x},${bgStart.y} A${r},${r} 0 ${large} 1 ${valEnd.x},${valEnd.y}" fill="none" stroke="${color}" stroke-width="14" stroke-linecap="round"/>`;
+
+      // Value text
+      html += `<text x="${cx}" y="${cy - 10}" text-anchor="middle" fill="${color}" font-size="24" font-weight="900">${(rate * 100).toFixed(3)}%</text>`;
+      html += `<text x="${cx}" y="${cy + 10}" text-anchor="middle" fill="#8888aa" font-size="10">信用資金成本率</text>`;
+
+      svg.innerHTML = html;
+    }
+
+    // ================================================================
+    // TAB 5: CUSTOMER LIFECYCLE
+    // ================================================================
+    function drawLifecycle(clients) {
+      drawLifecycleScatter(clients);
+      drawLifecycleLine(clients);
+    }
+
+    function drawLifecycleScatter(clients) {
+      const canvas = document.getElementById('canvasLifecycle');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width = canvas.parentElement.clientWidth;
+      const H = canvas.height = 360;
+      ctx.clearRect(0, 0, W, H);
+
+      const pad = { top: 30, right: 30, bottom: 50, left: 55 };
+      const cw = W - pad.left - pad.right;
+      const ch = H - pad.top - pad.bottom;
+
+      // Quadrant backgrounds
+      const midX = pad.left + cw * 0.35;
+      const midY = pad.top + ch * 0.4;
+
+      // Left-top (new) blue
+      ctx.fillStyle = 'rgba(0,212,255,0.04)';
+      ctx.fillRect(pad.left, pad.top, midX - pad.left, midY - pad.top);
+      // Center-top (growing) green
+      ctx.fillStyle = 'rgba(46,213,115,0.04)';
+      ctx.fillRect(midX, pad.top, pad.left + cw * 0.7 - midX, midY - pad.top);
+      // Right-top (mature) gold
+      ctx.fillStyle = 'rgba(255,215,0,0.04)';
+      ctx.fillRect(pad.left + cw * 0.7, pad.top, cw * 0.3, midY - pad.top);
+      // Right-bottom (declining) red
+      ctx.fillStyle = 'rgba(255,71,87,0.04)';
+      ctx.fillRect(pad.left + cw * 0.7, midY, cw * 0.3, ch - midY + pad.top);
+
+      // Axes
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.beginPath();
+      ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, H - pad.bottom);
+      ctx.lineTo(W - pad.right, H - pad.bottom); ctx.stroke();
+
+      ctx.fillStyle = '#8888aa'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+      ctx.fillText('交易筆數 (Transaction Count) →', W / 2, H - 10);
+      ctx.save(); ctx.translate(14, H / 2); ctx.rotate(-Math.PI / 2);
+      ctx.fillText('信用評分 (Credit Score) →', 0, 0); ctx.restore();
+
+      // Quadrant labels
+      ctx.font = '11px Inter'; ctx.fillStyle = 'rgba(0,212,255,0.5)';
+      ctx.fillText('🆕 新客戶期', pad.left + (midX - pad.left) / 2, pad.top + 20);
+      ctx.fillStyle = 'rgba(46,213,115,0.5)';
+      ctx.fillText('📈 成長期', (midX + pad.left + cw * 0.7) / 2, pad.top + 20);
+      ctx.fillStyle = 'rgba(255,215,0,0.5)';
+      ctx.fillText('⭐ 成熟期', pad.left + cw * 0.85, pad.top + 20);
+      ctx.fillStyle = 'rgba(255,71,87,0.5)';
+      ctx.fillText('📉 衰退期', pad.left + cw * 0.85, midY + 20);
+
+      const maxTx = Math.max(...clients.map(c => c.transactions), 25);
+      const maxScore = 100;
+
+      // Axis ticks
+      ctx.fillStyle = '#8888aa'; ctx.font = '9px Inter'; ctx.textAlign = 'center';
+      for (let i = 0; i <= 5; i++) {
+        const v = Math.round(maxTx / 5 * i);
+        const x = pad.left + (v / maxTx) * cw;
+        ctx.fillText(v, x, H - pad.bottom + 16);
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, H - pad.bottom); ctx.stroke();
+      }
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= 5; i++) {
+        const v = Math.round(maxScore / 5 * i);
+        const y = pad.top + ch - (v / maxScore) * ch;
+        ctx.fillText(v, pad.left - 6, y + 3);
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+      }
+
+      // Plot clients
+      clients.forEach(c => {
+        const x = pad.left + (c.transactions / maxTx) * cw;
+        const y = pad.top + ch - (c.creditScore / maxScore) * ch;
+        const color = LC_COLORS[c.lifecycle];
+        ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = color + '55'; ctx.fill();
+        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#e8e8f0'; ctx.font = '9px Inter'; ctx.textAlign = 'center';
+        ctx.fillText(c.name.substring(0, 4), x, y - 12);
+      });
+    }
+
+    function drawLifecycleLine(clients) {
+      const reps = [
+        { name: '台積電', scores: [70, 75, 82, 88, 92, 96], color: '#ffd700' },
+        { name: '三星電子', scores: [78, 72, 65, 52, 38, 28], color: '#ff4757' },
+        { name: '聯發科技', scores: [55, 62, 68, 74, 78, 82], color: '#00d4ff' },
+        { name: '廣達電腦', scores: [40, 48, 52, 55, 58, 61], color: '#2ed573' },
+        { name: '華碩電腦', scores: [70, 73, 78], color: '#a855f7' },
+      ];
+      if (chartInstances.lcLine) chartInstances.lcLine.destroy();
+      chartInstances.lcLine = new Chart(document.getElementById('chartLifecycleLine'), {
+        type: 'line',
+        data: {
+          labels: ['第1筆', '第3筆', '第5筆', '第8筆', '第12筆', '第15筆+'],
+          datasets: reps.map(r => ({
+            label: r.name, data: r.scores, borderColor: r.color,
+            backgroundColor: 'transparent', tension: 0.3, pointRadius: 4, pointBackgroundColor: r.color,
+          }))
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: tc2(), font: { size: 10 } } } },
+          scales: {
+            x: { ticks: { color: tc2(), font: { size: 10 } }, grid: { color: gridColor() } },
+            y: { min: 0, max: 100, ticks: { color: tc2(), font: { size: 10 } }, grid: { color: gridColor() } }
+          }
+        }
+      });
+    }
+
+    // ================================================================
+    // TAB 6: CREDIT PORTFOLIO
+    // ================================================================
+    function drawPortfolio(clients) {
+      drawPortfolioMatrix(clients);
+      drawAllocDonuts();
+      renderPortfolioTable();
+    }
+
+    function getQuadrant(c) {
+      const revMedian = 22;
+      const isHighRev = c.revenue >= revMedian;
+      const isLowRisk = (c.risk === 'safe' || c.risk === 'low');
+      if (isHighRev && isLowRisk) return 'star';
+      if (isHighRev && !isLowRisk) return 'potential';
+      if (!isHighRev && isLowRisk) return 'stable';
+      return 'problem';
+    }
+    const QUAD_COLORS = { star: '#2ed573', potential: '#ffa502', stable: '#00d4ff', problem: '#ff4757' };
+    const QUAD_LABELS = { star: '⭐ 明星客戶', potential: '⚡ 潛力客戶', stable: '🔵 穩定客戶', problem: '❌ 問題客戶' };
+    const QUAD_STRATEGY = { star: '提升授信 ⬆', potential: '分批付款 ⚡', stable: '維持現狀 →', problem: '清收退出 ❌' };
+
+    function drawPortfolioMatrix(clients) {
+      const canvas = document.getElementById('canvasPortfolio');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width = canvas.parentElement.clientWidth;
+      const H = canvas.height = 500;
+      ctx.clearRect(0, 0, W, H);
+
+      const pad = { top: 40, right: 30, bottom: 50, left: 55 };
+      const cw = W - pad.left - pad.right;
+      const ch = H - pad.top - pad.bottom;
+      const midX = pad.left + cw / 2;
+      const midY = pad.top + ch / 2;
+
+      // 象限背景填充
+      ctx.fillStyle = 'rgba(46,213,115,0.06)'; ctx.fillRect(pad.left, pad.top, cw / 2, ch / 2);
+      ctx.fillStyle = 'rgba(255,165,2,0.06)'; ctx.fillRect(midX, pad.top, cw / 2, ch / 2);
+      ctx.fillStyle = 'rgba(0,212,255,0.06)'; ctx.fillRect(pad.left, midY, cw / 2, ch / 2);
+      ctx.fillStyle = 'rgba(255,71,87,0.06)'; ctx.fillRect(midX, midY, cw / 2, ch / 2);
+
+      // 中線
+      ctx.strokeStyle = isDarkMode ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)'; ctx.setLineDash([4, 4]);
+      ctx.beginPath(); ctx.moveTo(midX, pad.top); ctx.lineTo(midX, H - pad.bottom); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(pad.left, midY); ctx.lineTo(W - pad.right, midY); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 軸線
+      ctx.strokeStyle = isDarkMode ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.18)';
+      ctx.beginPath(); ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, H - pad.bottom); ctx.lineTo(W - pad.right, H - pad.bottom); ctx.stroke();
+
+      // 軸標籤（放大至 12px）
+      ctx.fillStyle = tc2(); ctx.font = '600 12px Inter'; ctx.textAlign = 'center';
+      ctx.fillText('風險等級 (低 ──────── → ──────── 高)', W / 2, H - 8);
+      ctx.save(); ctx.translate(14, H / 2); ctx.rotate(-Math.PI / 2);
+      ctx.fillText('業績貢獻度 (低 ──── → ──── 高)', 0, 0); ctx.restore();
+
+      // 象限標籤（放大至 14px 標題 + 12px 策略）
+      ctx.textAlign = 'center';
+      ctx.font = '700 14px Inter';
+      ctx.fillStyle = 'rgba(46,213,115,0.7)'; ctx.fillText('⭐ 明星客戶', pad.left + cw * 0.25, pad.top + 24);
+      ctx.font = '600 12px Inter'; ctx.fillText('策略：提升授信 ⬆', pad.left + cw * 0.25, pad.top + 44);
+
+      ctx.font = '700 14px Inter';
+      ctx.fillStyle = 'rgba(255,165,2,0.7)'; ctx.fillText('⚡ 潛力客戶', pad.left + cw * 0.75, pad.top + 24);
+      ctx.font = '600 12px Inter'; ctx.fillText('策略：分批付款 ⚡', pad.left + cw * 0.75, pad.top + 44);
+
+      ctx.font = '700 14px Inter';
+      ctx.fillStyle = 'rgba(0,212,255,0.7)'; ctx.fillText('🔵 穩定客戶', pad.left + cw * 0.25, midY + 24);
+      ctx.font = '600 12px Inter'; ctx.fillText('策略：維持現狀 →', pad.left + cw * 0.25, midY + 44);
+
+      ctx.font = '700 14px Inter';
+      ctx.fillStyle = 'rgba(255,71,87,0.7)'; ctx.fillText('❌ 問題客戶', pad.left + cw * 0.75, midY + 24);
+      ctx.font = '600 12px Inter'; ctx.fillText('策略：清收退出 ❌', pad.left + cw * 0.75, midY + 44);
+
+      // 軸刻度標籤
+      ctx.fillStyle = tc2(); ctx.font = '10px Inter'; ctx.textAlign = 'center';
+      const riskLabels = ['極低', '低', '中', '高', '極高'];
+      for (let i = 0; i < 5; i++) {
+        const x = pad.left + (i / 4) * cw;
+        ctx.fillText(riskLabels[i], x, H - pad.bottom + 16);
+      }
+      ctx.textAlign = 'right';
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.top + ch - (i / 4) * ch;
+        ctx.fillText(Math.round(60 / 4 * i) + 'M', pad.left - 6, y + 3);
+      }
+
+      // 繪製客戶散點（放大半徑與名稱字型）
+      const riskX = { safe: 0.1, low: 0.25, mid: 0.5, high: 0.75, critical: 0.9 };
+      const maxRev = Math.max(...clients.map(c => c.revenue), 60);
+
+      clients.forEach(c => {
+        const rx = riskX[c.risk] || 0.5;
+        const x = pad.left + rx * cw;
+        const y = pad.top + ch - (c.revenue / maxRev) * ch;
+        const q = getQuadrant(c);
+        const color = QUAD_COLORS[q];
+        ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2);
+        ctx.fillStyle = color + '55'; ctx.fill();
+        ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = tc(); ctx.font = '600 11px Inter'; ctx.textAlign = 'center';
+        ctx.fillText(c.name.substring(0, 4), x, y - 14);
+      });
+    }
+
+    function drawAllocDonuts() {
+      const current = [{ label: '明星', pct: 45, color: '#2ed573' }, { label: '潛力', pct: 25, color: '#ffa502' }, { label: '穩定', pct: 20, color: '#00d4ff' }, { label: '問題', pct: 10, color: '#ff4757' }];
+      const suggested = [{ label: '明星', pct: 60, color: '#2ed573' }, { label: '潛力', pct: 20, color: '#ffa502' }, { label: '穩定', pct: 15, color: '#00d4ff' }, { label: '問題', pct: 5, color: '#ff4757' }];
+
+      function drawDonut(svgId, data) {
+        const svg = document.getElementById(svgId);
+        const cx = 75, cy = 75, r = 55, r2 = 35;
+        let angle = -Math.PI / 2;
+        let html = '';
+        data.forEach(d => {
+          const sweep = (d.pct / 100) * Math.PI * 2;
+          if (d.pct === 0) return;
+          const x1 = cx + r * Math.cos(angle), y1 = cy + r * Math.sin(angle);
+          const x2 = cx + r * Math.cos(angle + sweep), y2 = cy + r * Math.sin(angle + sweep);
+          const x3 = cx + r2 * Math.cos(angle + sweep), y3 = cy + r2 * Math.sin(angle + sweep);
+          const x4 = cx + r2 * Math.cos(angle), y4 = cy + r2 * Math.sin(angle);
+          const large = sweep > Math.PI ? 1 : 0;
+          html += `<path d="M${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} L${x3},${y3} A${r2},${r2} 0 ${large} 0 ${x4},${y4} Z" fill="${d.color}" opacity="0.75"/>`;
+          // Percentage label
+          const midAngle = angle + sweep / 2;
+          const lx = cx + (r + r2) / 2 * Math.cos(midAngle);
+          const ly = cy + (r + r2) / 2 * Math.sin(midAngle);
+          html += `<text x="${lx}" y="${ly}" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="9" font-weight="700">${d.pct}%</text>`;
+          angle += sweep;
+        });
+        svg.innerHTML = html;
+      }
+      drawDonut('svgAllocCurrent', current);
+      drawDonut('svgAllocSuggested', suggested);
+
+      document.getElementById('allocLegend').innerHTML = current.map(d => `<span style="color:${d.color};">● ${d.label}</span>`).join('');
+    }
+
+    function renderPortfolioTable() {
+      const filter = document.getElementById('filterQuadrant').value;
+      const clients = getFilteredClients();
+      let list = clients.map(c => ({ ...c, quadrant: getQuadrant(c) }));
+      if (filter !== 'all') list = list.filter(c => c.quadrant === filter);
+
+      const suggestMap = { star: '+20%', potential: '+0%', stable: '-5%', problem: '-30%' };
+      document.getElementById('portfolioBody').innerHTML = list.map(c => `<tr>
+    <td>${c.name}</td>
+    <td>${fmtM(c.revenue)}</td>
+    <td><span class="badge badge-${c.risk}">${RISK_LABELS[c.risk]}</span></td>
+    <td>${fmtM(c.bal * 1.5)}</td>
+    <td style="color:${c.quadrant === 'star' || c.quadrant === 'stable' ? 'var(--success)' : 'var(--danger)'};">${suggestMap[c.quadrant]}</td>
+    <td>${QUAD_LABELS[c.quadrant]}</td>
+  </tr>`).join('');
+    }
+
+    // ================================================================
+    // TAB 7: FORECAST ENGINE
+    // ================================================================
+    function drawForecast(clients) {
+      simulateWhatIf();
+      drawForecastTrend(clients);
+      drawHeatmap(clients);
+    }
+
+    function simulateWhatIf() {
+      const rate = parseFloat(document.getElementById('sim-rate').value) / 100;
+      const intensity = parseFloat(document.getElementById('sim-intensity').value);
+      const daysEl = document.querySelector('input[name="sim-days"]:checked');
+      const days = daysEl ? parseInt(daysEl.value) : 60;
+
+      document.getElementById('simRateVal').textContent = (rate * 100).toFixed(1) + '%';
+      document.getElementById('simIntVal').textContent = intensity.toFixed(1);
+
+      const clients = getFilteredClients();
+      const totalRev = clients.reduce((s, c) => s + c.revenue, 0) || 1;
+      const totalBal = clients.reduce((s, c) => s + c.bal, 0);
+
+      // Simulate
+      const baseCost = clients.reduce((s, c) => s + c.bal * c.aging * 0.06 / 365, 0) * 1000;
+      const baseCostRate = baseCost / (totalRev * 1000);
+      const baseLoss = clients.reduce((s, c) => s + c.loss, 0);
+
+      const simCost = clients.reduce((s, c) => s + c.bal * Math.max(c.aging - (intensity - 1) * days * 0.3, 5) * rate / 365, 0) * 1000;
+      const simCostRate = simCost / (totalRev * 1000);
+      const simLoss = clients.reduce((s, c) => s + c.loss * (1 / intensity) * (rate / 0.06), 0);
+      const improvement = Math.max(baseCost - simCost, 0);
+
+      document.getElementById('simCostRate').textContent = (simCostRate * 100).toFixed(3) + '%';
+      document.getElementById('simCostRate').style.color = simCostRate > baseCostRate ? 'var(--danger)' : 'var(--success)';
+      document.getElementById('simBadDebt').textContent = fmtK(simLoss);
+      document.getElementById('simImprove').textContent = (improvement > 0 ? '+' : '') + fmtK(improvement);
+      document.getElementById('simImprove').style.color = improvement >= 0 ? 'var(--success)' : 'var(--danger)';
+    }
+
+    function drawForecastTrend(clients) {
+      const canvas = document.getElementById('canvasForecast');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width = canvas.parentElement.clientWidth;
+      const H = canvas.height = 300;
+      ctx.clearRect(0, 0, W, H);
+
+      const pad = { top: 20, right: 20, bottom: 40, left: 50 };
+      const cw = W - pad.left - pad.right;
+      const ch = H - pad.top - pad.bottom;
+
+      const months = ['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月'];
+      const actual = [30.2, 29.8, 29.1, 28.8, 28.5, 28.3, null, null, null];
+      const pred30 = [null, null, null, null, null, 28.3, 27.5, 26.8, 26.2];
+      const pred60 = [null, null, null, null, null, 28.3, 28.0, 27.2, 26.5];
+      const pred90 = [null, null, null, null, null, 28.3, 28.8, 29.5, 30.1];
+
+      // Forecast area
+      const forecastStart = pad.left + (5 / 8) * cw;
+      ctx.fillStyle = 'rgba(0,212,255,0.04)';
+      ctx.fillRect(forecastStart, pad.top, W - pad.right - forecastStart, ch);
+      ctx.fillStyle = 'rgba(0,212,255,0.3)'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+      ctx.fillText('預測區間', forecastStart + (W - pad.right - forecastStart) / 2, pad.top + 14);
+
+      // Axes
+      ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+      ctx.beginPath(); ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, H - pad.bottom); ctx.lineTo(W - pad.right, H - pad.bottom); ctx.stroke();
+
+      const minY = 24, maxY = 32;
+      function toX(i) { return pad.left + (i / (months.length - 1)) * cw; }
+      function toY(v) { return pad.top + ch - ((v - minY) / (maxY - minY)) * ch; }
+
+      // Grid & labels
+      ctx.fillStyle = '#8888aa'; ctx.font = '9px Inter';
+      ctx.textAlign = 'center';
+      months.forEach((m, i) => ctx.fillText(m, toX(i), H - pad.bottom + 16));
+      ctx.textAlign = 'right';
+      for (let v = minY; v <= maxY; v += 2) {
+        ctx.fillText(v + '天', pad.left - 6, toY(v) + 3);
+        ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+        ctx.beginPath(); ctx.moveTo(pad.left, toY(v)); ctx.lineTo(W - pad.right, toY(v)); ctx.stroke();
+      }
+
+      function drawLine(data, color, dash) {
+        ctx.beginPath(); ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.setLineDash(dash);
+        let started = false;
+        data.forEach((v, i) => {
+          if (v === null) return;
+          if (!started) { ctx.moveTo(toX(i), toY(v)); started = true; }
+          else ctx.lineTo(toX(i), toY(v));
+        });
+        ctx.stroke(); ctx.setLineDash([]);
+        // Points
+        data.forEach((v, i) => {
+          if (v === null) return;
+          ctx.beginPath(); ctx.arc(toX(i), toY(v), 3, 0, Math.PI * 2);
+          ctx.fillStyle = color; ctx.fill();
+        });
+      }
+
+      drawLine(actual, '#ffd700', []);
+      drawLine(pred30, '#2ed573', [4, 4]);
+      drawLine(pred60, '#00d4ff', [4, 4]);
+      drawLine(pred90, '#ff4757', [4, 4]);
+
+      // Legend
+      const legends = [
+        { label: '歷史實際', color: '#ffd700', dash: false },
+        { label: '30天預測', color: '#2ed573', dash: true },
+        { label: '60天預測', color: '#00d4ff', dash: true },
+        { label: '90天預測', color: '#ff4757', dash: true },
+      ];
+      let lx = pad.left + 10;
+      ctx.font = '9px Inter'; ctx.textAlign = 'left';
+      legends.forEach(l => {
+        ctx.fillStyle = l.color;
+        ctx.fillRect(lx, pad.top + 4, 16, 2); if (l.dash) { ctx.fillStyle = 'var(--bg)'; ctx.fillRect(lx + 4, pad.top + 4, 4, 2); ctx.fillRect(lx + 12, pad.top + 4, 4, 2); }
+        ctx.fillStyle = l.color; ctx.fillText(l.label, lx + 20, pad.top + 8);
+        lx += 80;
+      });
+    }
+
+    function drawHeatmap(clients) {
+      const canvas = document.getElementById('canvasHeatmap');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width = canvas.parentElement.clientWidth;
+      const H = canvas.height = 300;
+      ctx.clearRect(0, 0, W, H);
+
+      const pad = { top: 20, right: 20, bottom: 30, left: 120 };
+      const cw = W - pad.left - pad.right;
+      const ch = H - pad.top - pad.bottom;
+
+      const weeks = 12;
+      const clientList = clients.slice(0, 10);
+      const cellW = cw / weeks;
+      const cellH = ch / clientList.length;
+
+      // Generate heatmap data (probability based on credit score and aging)
+      clientList.forEach((c, row) => {
+        for (let w = 0; w < weeks; w++) {
+          // Higher credit score = higher payment probability; increases over time for good clients
+          const baseProb = c.creditScore / 100;
+          const timeFactor = (c.risk === 'safe' || c.risk === 'low') ? 0.02 * w : -0.015 * w;
+          const prob = Math.max(0, Math.min(1, baseProb + timeFactor + (Math.random() - 0.5) * 0.1));
+
+          const x = pad.left + w * cellW;
+          const y = pad.top + row * cellH;
+
+          // Color: green (high prob) to red (low prob)
+          const r = Math.round(255 * (1 - prob));
+          const g = Math.round(200 * prob);
+          ctx.fillStyle = `rgba(${r},${g},60,0.7)`;
+          ctx.fillRect(x + 1, y + 1, cellW - 2, cellH - 2);
+
+          // Probability text if cell is big enough
+          if (cellW > 30 && cellH > 16) {
+            ctx.fillStyle = '#fff'; ctx.font = '8px Inter'; ctx.textAlign = 'center';
+            ctx.fillText((prob * 100).toFixed(0) + '%', x + cellW / 2, y + cellH / 2 + 3);
+          }
+        }
+      });
+
+      // Client labels
+      ctx.fillStyle = '#e8e8f0'; ctx.font = '10px Inter'; ctx.textAlign = 'right';
+      clientList.forEach((c, i) => {
+        ctx.fillText(c.name.substring(0, 8), pad.left - 6, pad.top + i * cellH + cellH / 2 + 3);
+      });
+
+      // Week labels
+      ctx.fillStyle = '#8888aa'; ctx.font = '9px Inter'; ctx.textAlign = 'center';
+      for (let w = 0; w < weeks; w++) {
+        ctx.fillText('W' + (w + 1), pad.left + w * cellW + cellW / 2, H - pad.bottom + 14);
+      }
+    }
+
+    // ================================================================
+    // TAB 8: SALES ATTRIBUTION
+    // ================================================================
+    function drawSales(clients) {
+      drawSalespersonBar(clients);
+      drawSalesRadar(clients);
+      drawSalespersonHeatmap(clients);
+      drawSalesTable(clients);
+    }
+
+    function getSPData(clients) {
+      const sps = ['張三', '李四', '王五', '趙六', '陳七'];
+      return sps.map(sp => {
+        const myClients = clients.filter(c => c.salesperson === sp);
+        const totalBal = myClients.reduce((s, c) => s + c.bal, 0);
+        const waa = totalBal > 0 ? myClients.reduce((s, c) => s + c.bal * c.aging, 0) / totalBal : 0;
+        const highRisk = myClients.filter(c => c.risk === 'high' || c.risk === 'critical').length;
+        const avgScore = myClients.length > 0 ? myClients.reduce((s, c) => s + c.creditScore, 0) / myClients.length : 0;
+        const costRate = totalBal > 0 ? myClients.reduce((s, c) => s + c.bal * c.aging * 0.06 / 365, 0) / myClients.reduce((s, c) => s + c.revenue, 0) : 0;
+        const revenue = myClients.reduce((s, c) => s + c.revenue, 0);
+        return { name: sp, clients: myClients, count: myClients.length, totalBal, waa, highRisk, avgScore, costRate, revenue };
+      });
+    }
+
+    function drawSalespersonBar(clients) {
+      const canvas = document.getElementById('canvasSalesBar');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width = canvas.parentElement.clientWidth;
+      const H = canvas.height = 300;
+      ctx.clearRect(0, 0, W, H);
+
+      const spData = getSPData(clients).sort((a, b) => a.waa - b.waa);
+      const pad = { top: 20, right: 30, bottom: 30, left: 60 };
+      const cw = W - pad.left - pad.right;
+      const ch = H - pad.top - pad.bottom;
+      const barH = ch / spData.length * 0.65;
+      const gap = ch / spData.length;
+      const maxWAA = Math.max(...spData.map(s => s.waa), 50);
+
+      spData.forEach((sp, i) => {
+        const y = pad.top + i * gap + (gap - barH) / 2;
+        const w = (sp.waa / maxWAA) * cw;
+        const color = SP_COLORS[sp.name];
+
+        // Bar
+        ctx.fillStyle = color + '88';
+        ctx.beginPath();
+        const r = 4;
+        ctx.roundRect(pad.left, y, w, barH, [0, r, r, 0]);
+        ctx.fill();
+
+        // Label
+        ctx.fillStyle = '#e8e8f0'; ctx.font = '11px Inter'; ctx.textAlign = 'right';
+        ctx.fillText(sp.name, pad.left - 8, y + barH / 2 + 4);
+
+        // Value
+        ctx.fillStyle = color; ctx.font = '11px Inter'; ctx.textAlign = 'left';
+        ctx.fillText(sp.waa.toFixed(1) + '天 | ' + fmtM(sp.totalBal), pad.left + w + 8, y + barH / 2 + 4);
+      });
+
+      // X axis
+      ctx.strokeStyle = isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)';
+      ctx.beginPath(); ctx.moveTo(pad.left, H - pad.bottom); ctx.lineTo(W - pad.right, H - pad.bottom); ctx.stroke();
+      ctx.fillStyle = tc2(); ctx.font = '9px Inter'; ctx.textAlign = 'center';
+      for (let i = 0; i <= 4; i++) {
+        const v = Math.round(maxWAA / 4 * i);
+        const x = pad.left + (v / maxWAA) * cw;
+        ctx.fillText(v + '天', x, H - pad.bottom + 14);
+      }
+    }
+
+    function drawSalesRadar(clients) {
+      const spData = getSPData(clients);
+      const dims = ['回收效率', '風險控制', '客戶品質', '業績貢獻', '授信合規'];
+      const maxRev = Math.max(...spData.map(s => s.revenue), 100);
+
+      const datasets = spData.map(sp => ({
+        label: sp.name,
+        data: [
+          Math.max(10, 100 - sp.waa * 2),      // 回收效率 (lower WAA = better)
+          Math.max(10, 100 - sp.highRisk * 30), // 風險控制
+          sp.avgScore,                           // 客戶品質
+          (sp.revenue / maxRev) * 100,           // 業績貢獻
+          Math.max(10, 100 - sp.costRate * 10000), // 授信合規
+        ],
+        borderColor: SP_COLORS[sp.name],
+        backgroundColor: SP_COLORS[sp.name] + '15',
+        pointBackgroundColor: SP_COLORS[sp.name],
+      }));
+
+      if (chartInstances.salesRadar) chartInstances.salesRadar.destroy();
+      chartInstances.salesRadar = new Chart(document.getElementById('chartSalesRadar'), {
+        type: 'radar',
+        data: { labels: dims, datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: tc2(), font: { size: 9 } } } },
+          scales: {
+            r: {
+              min: 0, max: 100,
+              angleLines: { color: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.1)' },
+              grid: { color: isDarkMode ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)' },
+              pointLabels: { color: tc(), font: { size: 9 } },
+              ticks: { display: false }
+            }
+          }
+        }
+      });
+    }
+
+    function drawSalespersonHeatmap(clients) {
+      const canvas = document.getElementById('canvasSalesHeat');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width = canvas.parentElement.clientWidth;
+      const H = canvas.height = 280;
+      ctx.clearRect(0, 0, W, H);
+
+      const sps = ['張三', '李四', '王五', '趙六', '陳七'];
+      const risks = RISK_ORDER;
+      const riskLabels = ['無', '低', '中', '高', '超高'];
+
+      const pad = { top: 30, right: 20, bottom: 30, left: 60 };
+      const cw = W - pad.left - pad.right;
+      const ch = H - pad.top - pad.bottom;
+      const cellW = cw / risks.length;
+      const cellH = ch / sps.length;
+
+      // Find max for color scaling
+      let maxBal = 0;
+      sps.forEach(sp => {
+        risks.forEach(r => {
+          const bal = clients.filter(c => c.salesperson === sp && c.risk === r).reduce((s, c) => s + c.bal, 0);
+          if (bal > maxBal) maxBal = bal;
+        });
+      });
+      maxBal = maxBal || 1;
+
+      sps.forEach((sp, row) => {
+        risks.forEach((r, col) => {
+          const myClients = clients.filter(c => c.salesperson === sp && c.risk === r);
+          const bal = myClients.reduce((s, c) => s + c.bal, 0);
+          const intensity = bal / maxBal;
+
+          const x = pad.left + col * cellW;
+          const y = pad.top + row * cellH;
+
+          // Color from risk
+          const baseColor = RISK_COLORS[r];
+          ctx.fillStyle = baseColor + Math.round(intensity * 200 + 20).toString(16).padStart(2, '0');
+          ctx.fillRect(x + 1, y + 1, cellW - 2, cellH - 2);
+
+          // Text
+          if (myClients.length > 0) {
+            ctx.fillStyle = '#fff'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+            ctx.fillText(myClients.length + '家', x + cellW / 2, y + cellH / 2 - 2);
+            ctx.font = '8px Inter'; ctx.fillStyle = '#ddd';
+            ctx.fillText(fmtM(bal), x + cellW / 2, y + cellH / 2 + 12);
+          }
+        });
+      });
+
+      // Labels
+      ctx.fillStyle = tc(); ctx.font = '10px Inter'; ctx.textAlign = 'right';
+      sps.forEach((sp, i) => ctx.fillText(sp, pad.left - 8, pad.top + i * cellH + cellH / 2 + 3));
+      ctx.textAlign = 'center';
+      riskLabels.forEach((l, i) => ctx.fillText(l, pad.left + i * cellW + cellW / 2, pad.top - 10));
+    }
+
+    function drawSalesTable(clients) {
+      const spData = getSPData(clients);
+      const maxRev = Math.max(...spData.map(s => s.revenue), 1);
+
+      function grade(sp) {
+        const score = (100 - sp.waa * 1.5) * 0.3 + sp.avgScore * 0.3 + (sp.revenue / maxRev * 100) * 0.2 + (100 - sp.highRisk * 25) * 0.2;
+        if (score >= 80) return 'A';
+        if (score >= 60) return 'B';
+        if (score >= 40) return 'C';
+        return 'D';
+      }
+
+      document.getElementById('salesBody').innerHTML = spData.map(sp => {
+        const g = grade(sp);
+        return `<tr>
+      <td style="font-weight:600;">${sp.name}</td>
+      <td>${sp.count}</td>
+      <td>${fmtM(sp.totalBal)}</td>
+      <td>${sp.waa.toFixed(1)}天</td>
+      <td style="color:${sp.highRisk > 0 ? 'var(--danger)' : 'var(--success)'};">${sp.highRisk}</td>
+      <td>${(sp.costRate * 100).toFixed(3)}%</td>
+      <td><span class="badge badge-${g}">${g}</span></td>
+    </tr>`;
+      }).join('');
+    }
+
+    // ================================================================
+    // INIT
+    // ================================================================
+    window.addEventListener('load', () => { drawAll(); initAIPanelEvents(); });
+    window.addEventListener('resize', () => { drawAll(); });
+
+  // ================================================================
+  // AR V5.0 — AI 分析模組  (arAiModule)
+  // 模組 A: 狀態與供應商  B: 自訂端點  C: 雙API格式
+  // 模組 D: 對話匯出快取  E: System Prompt  F: 8頁籤擷取器
+  // ================================================================
+
+  // ══ AR-1. 狀態變數與供應商配置 ══
+
+  const arAiState = {
+    provider: 'openai', model: 'gpt-4o', apiKey: '',
+    chatHistory: [], currentTabId: 'tab0',
+    isStreaming: false, abortController: null,
+    savedKeys: {}, apiFormat: 'openai',
+    customBaseUrl: '', temperature: 0.3, maxTokens: 4096, useStream: true
+  };
+
+  const AR_AI_PROVIDERS = {
+    openai: {
+      name: 'OpenAI', baseUrl: 'https://api.openai.com/v1',
+      models: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'o3-mini'],
+      defaultModel: 'gpt-4o'
+    },
+    anthropic: {
+      name: 'Anthropic', baseUrl: 'https://api.anthropic.com/v1',
+      models: ['claude-opus-4-6', 'claude-sonnet-4-6', 'claude-haiku-4-5-20251001'],
+      defaultModel: 'claude-sonnet-4-6'
+    },
+    google: {
+      name: 'Google Gemini', baseUrl: 'https://generativelanguage.googleapis.com/v1beta/openai',
+      models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'],
+      defaultModel: 'gemini-2.5-flash'
+    },
+    custom: {
+      name: '自訂端點', baseUrl: '', models: [], defaultModel: ''
+    }
+  };
+
+  // ══ AR-2. 面板 UI 控制 ══
+
+  function toggleAIPanel() {
+    const panel = document.getElementById('ai-panel');
+    const toggle = document.getElementById('ai-panel-toggle');
+    if (!panel) return;
+    if (panel.classList.contains('open')) {
+      closeAIPanel();
+    } else {
+      panel.classList.add('open');
+      if (toggle) toggle.style.right = '440px';
+      updateARContextLabel();
+      initAIProviderUI();
+      _arRefreshSaveHint();
+      _arCheckRestoreBtn();
+    }
+  }
+
+  function closeAIPanel() {
+    const panel = document.getElementById('ai-panel');
+    const toggle = document.getElementById('ai-panel-toggle');
+    if (panel) panel.classList.remove('open');
+    if (toggle) toggle.style.right = '0';
+  }
+
+  function updateARContextLabel() {
+    const TAB_LABELS = {
+      'tab0': '📊 應收概況', 'tab1': '⏱ 帳齡管控',
+      'tab2': '🕸 風險管控', 'tab3': '🚨 回收決策',
+      'tab4': '🔬 客戶生命週期', 'tab5': '🎯 授信組合矩陣',
+      'tab6': '🎛 預測引擎', 'tab7': '🏆 業務歸因'
+    };
+    arAiState.currentTabId = 'tab' + currentTab;
+    const lbl = document.getElementById('ai-context-label');
+    if (lbl) lbl.textContent = TAB_LABELS[arAiState.currentTabId] || arAiState.currentTabId;
+  }
+
+  function setAIStatus(status) {
+    const badge = document.getElementById('ai-status-badge');
+    if (!badge) return;
+    const MAP = { idle: '未連線', ready: '就緒', streaming: '分析中…', error: '錯誤' };
+    badge.className = 'ai-status-badge ' + status;
+    badge.textContent = MAP[status] || status;
+  }
+
+  // ══ AR-3. 供應商 UI 聯動（Module B 自訂端點） ══
+
+  function initAIProviderUI() {
+    const provSel = document.getElementById('ai-provider');
+    const mdlSel  = document.getElementById('ai-model');
+    if (!provSel || !mdlSel) return;
+    provSel.value = arAiState.provider;
+    _arToggleCustomRows(arAiState.provider);
+    arUpdateModelOptions();
+    if (arAiState.model) mdlSel.value = arAiState.model;
+    const custMdl = document.getElementById('ai-custom-model');
+    if (custMdl && arAiState.provider === 'custom') custMdl.value = arAiState.model || '';
+    const fmtSel = document.getElementById('ai-api-format');
+    if (fmtSel) fmtSel.value = arAiState.apiFormat || 'openai';
+    const urlInp = document.getElementById('ai-custom-url');
+    if (urlInp && arAiState.customBaseUrl) urlInp.value = arAiState.customBaseUrl;
+  }
+
+  function _arToggleCustomRows(provider) {
+    const isCustom = provider === 'custom';
+    const urlRow = document.getElementById('ai-custom-url-row');
+    const mdlRow = document.getElementById('ai-custom-model-row');
+    const fmtRow = document.getElementById('ai-api-format-row');
+    const mdlSel = document.getElementById('ai-model');
+    if (urlRow) urlRow.style.display = isCustom ? 'flex' : 'none';
+    if (mdlRow) mdlRow.style.display = isCustom ? 'flex' : 'none';
+    if (fmtRow) fmtRow.style.display = isCustom ? 'flex' : 'none';
+    if (mdlSel) mdlSel.style.display = isCustom ? 'none' : 'block';
+  }
+
+  function onProviderChange() {
+    const sel = document.getElementById('ai-provider');
+    if (!sel) return;
+    arAiState.provider = sel.value;
+    _arToggleCustomRows(arAiState.provider);
+    arUpdateModelOptions();
+    _arFillKeyForProvider(arAiState.provider);
+  }
+
+  function _arFillKeyForProvider(provider) {
+    const keyEl = document.getElementById('ai-apikey');
+    if (!keyEl) return;
+    const saved = arAiState.savedKeys || {};
+    if (saved[provider]) {
+      try { keyEl.value = atob(saved[provider]); } catch { keyEl.value = ''; }
+      arAiState.apiKey = keyEl.value;
+      setAIStatus(keyEl.value ? 'ready' : 'idle');
+    } else {
+      keyEl.value = ''; arAiState.apiKey = ''; setAIStatus('idle');
+    }
+  }
+
+  function arUpdateModelOptions() {
+    const mdlSel = document.getElementById('ai-model');
+    if (!mdlSel) return;
+    if (arAiState.provider === 'custom') { mdlSel.innerHTML = ''; mdlSel.style.display = 'none'; return; }
+    mdlSel.style.display = 'block';
+    const prov = AR_AI_PROVIDERS[arAiState.provider];
+    mdlSel.innerHTML = '';
+    prov.models.forEach(m => {
+      const opt = document.createElement('option');
+      opt.value = m; opt.textContent = m;
+      mdlSel.appendChild(opt);
+    });
+    mdlSel.value = arAiState.model || prov.defaultModel;
+    arAiState.model = mdlSel.value;
+  }
+
+  function toggleKeyVisibility() {
+    const inp = document.getElementById('ai-apikey');
+    const btn = document.getElementById('ai-toggle-key');
+    if (!inp) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    if (btn) btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+  }
+
+  function getAIConfig() {
+    const key = (document.getElementById('ai-apikey') || {}).value || '';
+    const isCustom = arAiState.provider === 'custom';
+    const model = isCustom
+      ? ((document.getElementById('ai-custom-model') || {}).value || '')
+      : ((document.getElementById('ai-model') || {}).value || '');
+    const temp     = parseFloat((document.getElementById('ai-temp') || {}).value || '0.3');
+    const maxTok   = parseInt((document.getElementById('ai-max-tokens') || {}).value || '4096');
+    const stream   = (document.getElementById('ai-stream-mode') || {}).value !== '0';
+    const customUrl = (document.getElementById('ai-custom-url') || {}).value || '';
+    const apiFormat = (document.getElementById('ai-api-format') || {}).value || 'openai';
+    return { key, model, temp, maxTok, stream, customUrl, apiFormat };
+  }
+
+  // ══ AR-4. Module A：設定持久化 ══
+
+  const AR_AI_STORAGE_KEY = 'arV5AiSettings';
+
+  function saveAISettings() {
+    const cfg  = getAIConfig();
+    const saved = arAiState.savedKeys || {};
+    if (cfg.key && arAiState.provider) saved[arAiState.provider] = btoa(cfg.key);
+    arAiState.savedKeys = saved;
+    const payload = {
+      provider: arAiState.provider, model: cfg.model,
+      customBaseUrl: cfg.customUrl, temperature: cfg.temp,
+      maxTokens: cfg.maxTok, useStream: cfg.stream,
+      apiFormat: cfg.apiFormat, savedKeys: saved
+    };
+    try {
+      localStorage.setItem(AR_AI_STORAGE_KEY, JSON.stringify(payload));
+      _arRefreshSaveHint(true);
+      _arShowToast('設定已儲存至本機瀏覽器');
+    } catch(e) { _arShowToast('儲存失敗：' + e.message, true); }
+  }
+
+  function loadAISettings() {
+    try {
+      const raw = localStorage.getItem(AR_AI_STORAGE_KEY);
+      if (!raw) return;
+      const s = JSON.parse(raw);
+      if (s.provider)    arAiState.provider      = s.provider;
+      if (s.model)       arAiState.model         = s.model;
+      if (s.customBaseUrl) arAiState.customBaseUrl = s.customBaseUrl;
+      if (s.temperature != null) arAiState.temperature = s.temperature;
+      if (s.maxTokens)   arAiState.maxTokens     = s.maxTokens;
+      if (s.useStream != null) arAiState.useStream = s.useStream;
+      if (s.apiFormat)   arAiState.apiFormat     = s.apiFormat;
+      if (s.savedKeys)   arAiState.savedKeys     = s.savedKeys;
+      function applyToUI() {
+        const provSel = document.getElementById('ai-provider');
+        if (provSel) { provSel.value = arAiState.provider; _arToggleCustomRows(arAiState.provider); }
+        arUpdateModelOptions();
+        const mdlSel = document.getElementById('ai-model');
+        if (mdlSel && s.model && arAiState.provider !== 'custom') mdlSel.value = s.model;
+        const custMdl = document.getElementById('ai-custom-model');
+        if (custMdl && arAiState.provider === 'custom') custMdl.value = s.model || '';
+        const urlInp = document.getElementById('ai-custom-url');
+        if (urlInp && s.customBaseUrl) urlInp.value = s.customBaseUrl;
+        const tempInp = document.getElementById('ai-temp');
+        if (tempInp) {
+          tempInp.value = s.temperature || 0.3;
+          const tv = document.getElementById('ai-temp-val');
+          if (tv) tv.textContent = s.temperature || 0.3;
+        }
+        const maxTokSel = document.getElementById('ai-max-tokens');
+        if (maxTokSel && s.maxTokens) maxTokSel.value = String(s.maxTokens);
+        const streamSel = document.getElementById('ai-stream-mode');
+        if (streamSel) streamSel.value = s.useStream === false ? '0' : '1';
+        const fmtSel = document.getElementById('ai-api-format');
+        if (fmtSel && s.apiFormat) fmtSel.value = s.apiFormat;
+        _arFillKeyForProvider(arAiState.provider);
+        _arRefreshSaveHint();
+      }
+      if (document.readyState === 'complete' || document.readyState === 'interactive') applyToUI();
+      else document.addEventListener('DOMContentLoaded', applyToUI);
+    } catch(e) { console.warn('[AR-AI] loadAISettings 失敗：', e); }
+  }
+
+  function clearAISavedSettings() {
+    if (!confirm('確定清除本機儲存的所有 AI 設定（包含 API Keys）？')) return;
+    localStorage.removeItem(AR_AI_STORAGE_KEY);
+    arAiState.savedKeys = {};
+    const keyEl = document.getElementById('ai-apikey');
+    if (keyEl) keyEl.value = '';
+    arAiState.apiKey = '';
+    _arRefreshSaveHint(false);
+    setAIStatus('idle');
+    _arShowToast('已清除本機儲存的 AI 設定');
+  }
+
+  function _arRefreshSaveHint(forceShow) {
+    const hint = document.getElementById('ai-save-hint');
+    if (!hint) return;
+    const hasSaved = arAiState.savedKeys && Object.values(arAiState.savedKeys).some(v => v);
+    hint.style.display = (forceShow || hasSaved) ? 'inline' : 'none';
+  }
+
+  // ══ AR-5. Token 估算 ══
+
+  function estimateTokensAR(text) {
+    const cjk = (text.match(/[\u4e00-\u9fff\u3000-\u30ff]/g) || []).length;
+    return Math.ceil(cjk * 1.5 + (text.length - cjk) * 0.28);
+  }
+
+  function updateTokenHint(messages) {
+    const el = document.getElementById('ai-token-hint');
+    if (!el) return;
+    const total = messages.reduce((s, m) => s + estimateTokensAR(String(m.content || '')), 0);
+    el.textContent = `預估 ~${total.toLocaleString()} tokens`;
+  }
+
+  // ══ AR-6. Module C：雙 API 格式核心呼叫 ══
+
+  async function callAI(messages) {
+    const cfg = getAIConfig();
+    if (!cfg.key) {
+      appendAIError('請先輸入 API Key，或點擊「💾 儲存設定」還原已儲存的金鑰');
+      document.getElementById('ai-apikey')?.focus();
+      return null;
+    }
+    const prov    = AR_AI_PROVIDERS[arAiState.provider];
+    const baseUrl = (arAiState.provider === 'custom' && cfg.customUrl)
+      ? cfg.customUrl.replace(/\/$/, '')
+      : prov.baseUrl;
+    const model   = cfg.model || prov.defaultModel || '';
+    if (!model) { appendAIError('請選擇或輸入模型名稱'); return null; }
+
+    const fmt = arAiState.provider === 'custom' ? cfg.apiFormat
+      : (arAiState.provider === 'anthropic' ? 'anthropic' : 'openai');
+
+    updateTokenHint(messages);
+    setAIStatus('streaming');
+    arAiState.isStreaming = true;
+    arAiState.abortController = new AbortController();
+
+    const msgEl = appendAIMessage('', 'assistant', true);
+
+    try {
+      let fullText = '';
+      if (fmt === 'anthropic') {
+        fullText = await _callAnthropic(messages, model, baseUrl, cfg, msgEl);
+      } else {
+        fullText = await _callOpenAI(messages, model, baseUrl, cfg, msgEl);
+      }
+      if (fullText !== null) {
+        arAiState.chatHistory.push({ role: 'assistant', content: fullText });
+        arTrimChatHistory();
+        saveAIChatCache();
+      }
+      setAIStatus('ready');
+      return fullText;
+    } catch(err) {
+      _handleAIError(err, msgEl);
+      setAIStatus('error');
+      return null;
+    } finally {
+      arAiState.isStreaming = false;
+      arAiState.abortController = null;
+      const sendBtn = document.getElementById('ai-send-btn');
+      if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = '發送'; }
+    }
+  }
+
+  async function _callOpenAI(messages, model, baseUrl, cfg, msgEl) {
+    const resp = await fetch(`${baseUrl}/chat/completions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.key}` },
+      body: JSON.stringify({ model, messages, temperature: cfg.temp, max_tokens: cfg.maxTok, stream: cfg.stream }),
+      signal: arAiState.abortController.signal
+    });
+    if (!resp.ok) { await _arThrowAPIError(resp); }
+    let fullText = '';
+    if (cfg.stream) {
+      const reader  = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n'); buf = lines.pop();
+        for (const line of lines) {
+          const t = line.trim();
+          if (!t.startsWith('data: ')) continue;
+          const data = t.slice(6);
+          if (data === '[DONE]') break;
+          try {
+            const delta = JSON.parse(data).choices?.[0]?.delta?.content || '';
+            fullText += delta; _arUpdateMsgEl(msgEl, fullText);
+          } catch {}
+        }
+      }
+    } else {
+      const json = await resp.json();
+      fullText = json.choices?.[0]?.message?.content || '';
+      _arUpdateMsgEl(msgEl, fullText);
+    }
+    return fullText;
+  }
+
+  async function _callAnthropic(messages, model, baseUrl, cfg, msgEl) {
+    let systemContent = '';
+    const anthropicMsgs = [];
+    for (const m of messages) {
+      if (m.role === 'system') { systemContent += (systemContent ? '\n\n' : '') + m.content; }
+      else { anthropicMsgs.push({ role: m.role, content: m.content }); }
+    }
+    const cleanedMsgs = [];
+    for (const m of anthropicMsgs) {
+      if (cleanedMsgs.length > 0 && cleanedMsgs[cleanedMsgs.length - 1].role === m.role) {
+        cleanedMsgs[cleanedMsgs.length - 1].content += '\n' + m.content;
+      } else { cleanedMsgs.push({ ...m }); }
+    }
+    if (cleanedMsgs.length === 0 || cleanedMsgs[0].role !== 'user')
+      cleanedMsgs.unshift({ role: 'user', content: '請開始分析。' });
+    const body = { model, max_tokens: cfg.maxTok, messages: cleanedMsgs, stream: cfg.stream };
+    if (systemContent) body.system = systemContent;
+    const resp = await fetch(`${baseUrl}/messages`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': cfg.key, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify(body),
+      signal: arAiState.abortController.signal
+    });
+    if (!resp.ok) { await _arThrowAPIError(resp); }
+    let fullText = '';
+    if (cfg.stream) {
+      const reader  = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n'); buf = lines.pop();
+        for (const line of lines) {
+          const t = line.trim();
+          if (!t.startsWith('data: ')) continue;
+          try {
+            const ev = JSON.parse(t.slice(6));
+            if (ev.type === 'content_block_delta') {
+              const delta = ev.delta?.text || '';
+              fullText += delta; _arUpdateMsgEl(msgEl, fullText);
+            }
+          } catch {}
+        }
+      }
+    } else {
+      const json = await resp.json();
+      fullText = (json.content || []).map(c => c.text || '').join('');
+      _arUpdateMsgEl(msgEl, fullText);
+    }
+    return fullText;
+  }
+
+  function _arUpdateMsgEl(msgEl, text) {
+    if (!msgEl) return;
+    msgEl.innerHTML = renderMarkdownAI(text) +
+      '<button class="ai-copy-btn" onclick="copyAIMsg(this)">📋</button>';
+    const msgsEl = document.getElementById('ai-messages');
+    if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
+  async function _arThrowAPIError(resp) {
+    let msg = `HTTP ${resp.status}`;
+    try { const j = await resp.json(); msg = j.error?.message || j.error?.type || msg; } catch {}
+    throw new Error(msg);
+  }
+
+  function _handleAIError(err, msgEl) {
+    if (err.name === 'AbortError') {
+      if (msgEl) msgEl.innerHTML += '<br><em style="color:#64748b;font-size:0.75rem">（已中止）</em>';
+      return;
+    }
+    const CODE_MAP = {
+      '401': 'API Key 無效或已過期', '402': '帳戶餘額不足',
+      '403': 'API Key 無此資源權限', '404': '模型名稱錯誤或端點不存在',
+      '429': '請求過於頻繁（Rate Limit），請稍後再試',
+      '500': '供應商伺服器內部錯誤', '502': '閘道錯誤', '503': '服務暫時不可用'
+    };
+    const code    = err.message.match(/HTTP (\d+)/)?.[1];
+    const showMsg = (code && CODE_MAP[code]) ? CODE_MAP[code] : err.message;
+    if (msgEl) msgEl.innerHTML = `<span style="color:#ff4757">⚠ ${showMsg}</span>`;
+  }
+
+  function arTrimChatHistory(maxRounds) {
+    maxRounds = maxRounds || 8;
+    if (arAiState.chatHistory.length > maxRounds * 2)
+      arAiState.chatHistory = arAiState.chatHistory.slice(-(maxRounds * 2));
+  }
+
+  // ══ AR-7. 訊息泡泡 DOM 操作 ══
+
+  function appendAIMessage(content, role, loading) {
+    const container = document.getElementById('ai-messages');
+    if (!container) return null;
+    const welcome = container.querySelector('.ai-welcome');
+    if (welcome) welcome.remove();
+    const div = document.createElement('div');
+    div.className = 'ai-msg ' + (role || 'assistant');
+    if (loading) {
+      div.innerHTML = '<span class="ai-thinking-dots">分析中</span>';
+    } else if (content) {
+      div.innerHTML = renderMarkdownAI(content) +
+        (role === 'assistant' ? '<button class="ai-copy-btn" onclick="copyAIMsg(this)">📋</button>' : '');
+    }
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+    return div;
+  }
+
+  function appendAIError(msg) {
+    const container = document.getElementById('ai-messages');
+    if (!container) return;
+    container.querySelector('.ai-welcome')?.remove();
+    const div = document.createElement('div');
+    div.className = 'ai-msg assistant';
+    div.innerHTML = `<span style="color:#ff4757">⚠ ${msg}</span>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function clearAIChat() {
+    const container = document.getElementById('ai-messages');
+    if (!container) return;
+    arAiState.chatHistory = [];
+    container.innerHTML = `
+    <div class="ai-welcome">
+      <div class="ai-welcome-icon">🤖</div>
+      <p>對話已清除。請繼續提問或點擊頁籤的 <strong style="color:var(--accent)">🤖 AI 分析</strong> 按鈕。</p>
+      <button onclick="restoreAIChat()" id="ai-restore-btn"
+        style="display:none;margin-top:12px;font-size:0.72rem;padding:5px 14px;border-radius:8px;
+        background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.22);
+        color:var(--accent);cursor:pointer">🕐 還原上次對話</button>
+    </div>`;
+    _arCheckRestoreBtn();
+  }
+
+  function copyAIMsg(btn) {
+    const msgEl = btn.parentElement;
+    const text  = msgEl.innerText.replace('📋', '').trim();
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = '✓'; setTimeout(() => { btn.textContent = '📋'; }, 1500);
+    }).catch(() => { btn.textContent = '✗'; });
+  }
+
+  // ══ AR-8. 發送訊息 ══
+
+  async function sendAIMessage() {
+    if (arAiState.isStreaming) {
+      if (arAiState.abortController) arAiState.abortController.abort();
+      return;
+    }
+    const input   = document.getElementById('ai-input');
+    const sendBtn = document.getElementById('ai-send-btn');
+    if (!input) return;
+    const text = input.value.trim();
+    if (!text) return;
+    input.value = '';
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '⏹ 停止'; }
+
+    appendAIMessage(text, 'user', false);
+    arAiState.chatHistory.push({ role: 'user', content: text });
+
+    updateARContextLabel();
+    const ctxData = extractARTabData(arAiState.currentTabId);
+    const ctxStr  = formatARContextForPrompt(ctxData);
+
+    const messages = [
+      { role: 'system', content: AR_AI_SYSTEM_PROMPT },
+      { role: 'system', content: '【當前頁籤數據摘要】\n' + ctxStr },
+      ...arAiState.chatHistory.slice(-14)
+    ];
+    await callAI(messages);
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.shiftKey && e.key === 'A') toggleAIPanel();
+  });
+
+  // ══ AR-9. 頁籤快速分析觸發 ══
+
+  async function triggerTabAI(tabId) {
+    const panel = document.getElementById('ai-panel');
+    if (!panel?.classList.contains('open')) toggleAIPanel();
+    initAIProviderUI();
+    updateARContextLabel();
+
+    const data    = extractARTabData(tabId);
+    const ctxStr  = formatARContextForPrompt(data);
+
+    const TAB_TRIGGER_MSG = {
+      'tab0': '📊 請分析應收帳款整體健康狀況，評估 DSO、AR 周轉率、信用資金成本率等核心指標，並按優先序提供改善建議。',
+      'tab1': '⏱ 請分析帳齡分佈結構，評估五級帳齡桶的金額與佔比，識別逾期集中風險，並建議帳齡優化策略。',
+      'tab2': '🕸 請綜合風險雷達五維度、泡泡矩陣與五級風險分類，識別最高風險客戶群，建議分級風控措施。',
+      'tab3': '🚨 請評估催收優先序列的合理性，分析緊迫指數排名，並為前 5 名催收對象設計個別催收方案。',
+      'tab4': '🔬 請分析客戶生命週期分佈，識別衰退期客戶的預警信號，並建議各階段差異化信用策略。',
+      'tab5': '🎯 請評估授信組合矩陣四象限，分析目前與建議配置的差異，量化授信重新配置可帶來的收益改善。',
+      'tab6': '🎛 請評估 What-If 情境模擬結果，比較樂觀/基準/悲觀三情境差異，建議最佳參數組合以降低信用風險成本。',
+      'tab7': '🏆 請分析各業務員的績效與信用管控表現，識別高風險客戶集中的業務員，提供針對性管理介入建議。'
+    };
+    const userMsg = TAB_TRIGGER_MSG[tabId] || '請分析當前頁籤數據。';
+
+    appendAIMessage(userMsg, 'user', false);
+    arAiState.chatHistory = [{ role: 'user', content: userMsg }];
+
+    const messages = [
+      { role: 'system', content: AR_AI_SYSTEM_PROMPT },
+      { role: 'system', content: '【頁籤數據摘要】\n' + ctxStr },
+      { role: 'user',   content: userMsg }
+    ];
+    updateTokenHint(messages);
+
+    const sendBtn = document.getElementById('ai-send-btn');
+    if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '⏹ 停止'; }
+
+    await callAI(messages);
+  }
+
+  // ══ AR-10. 8 個頁籤資料擷取器（Module F） ══
+
+  function extractARTabData(tabId) {
+    const fn = {
+      'tab0': extractAROverviewData,  'tab1': extractARAgingData,
+      'tab2': extractARRiskData,      'tab3': extractARCollectionData,
+      'tab4': extractARLifecycleData, 'tab5': extractARPortfolioData,
+      'tab6': extractARForecastData,  'tab7': extractARSalesData
+    }[tabId];
+    if (!fn) return { tabId, note: '此頁籤無對應擷取器' };
+    try { return fn(); } catch(e) { return { tabId, error: e.message, note: '擷取失敗' }; }
+  }
+
+  function _arFmt(v, dp = 2) { return v != null ? Number(v).toFixed(dp) : '—'; }
+  function _arFmtM(v) { return v != null ? '$' + Number(v).toFixed(2) + 'M' : '—'; }
+  function _arFmtPct(v) { return v != null ? (Number(v) * 100).toFixed(3) + '%' : '—'; }
+
+  function _arCalcBase(clients) {
+    const totalBal  = clients.reduce((s, c) => s + c.bal, 0);
+    const totalRev  = clients.reduce((s, c) => s + c.revenue, 0);
+    const waa       = totalBal > 0 ? clients.reduce((s, c) => s + c.bal * c.aging, 0) / totalBal : 0;
+    const dso       = totalRev > 0 ? (totalBal / totalRev) * 365 : 0;
+    const turnover  = totalBal > 0 ? totalRev / totalBal : 0;
+    const arRatio   = totalRev > 0 ? totalBal / totalRev : 0;
+    const creditCost = clients.reduce((s, c) => s + c.bal * c.aging * (PARAMS.rate / 100) / 365, 0) * 1000;
+    const creditRate = totalRev > 0 ? creditCost / (totalRev * 1000) : 0;
+    const totalLoss  = clients.reduce((s, c) => s + (c.loss || 0), 0);
+    const bdRatio    = totalBal > 0 ? totalLoss / (totalBal * 1000) : 0;
+    return { totalBal, totalRev, waa, dso, turnover, arRatio, creditCost, creditRate, totalLoss, bdRatio };
+  }
+
+  function extractAROverviewData() {
+    const clients = getFilteredClients();
+    const b = _arCalcBase(clients);
+    const riskDist = {};
+    clients.forEach(c => { riskDist[c.risk] = (riskDist[c.risk] || 0) + 1; });
+    return {
+      tabName: '應收概況', clientCount: clients.length,
+      kpi: {
+        arBalance: _arFmtM(b.totalBal), revenue: _arFmtM(b.totalRev),
+        arRatio: _arFmt(b.arRatio * 100, 1) + '%',
+        turnover: _arFmt(b.turnover, 1) + 'x',
+        dso: _arFmt(b.dso, 1) + '天',
+        waa: _arFmt(b.waa, 1) + '天',
+        creditCost: '$' + Math.round(b.creditCost) + 'K',
+        creditRate: (b.creditRate * 100).toFixed(3) + '%',
+        badDebtRatio: (b.bdRatio * 100).toFixed(2) + '%',
+        totalLoss: '$' + Math.round(b.totalLoss) + 'K'
+      },
+      riskDistribution: riskDist,
+      top3HighRisk: clients.filter(c => c.risk === 'critical' || c.risk === 'high')
+        .slice(0, 3).map(c => ({ name: c.name, bal: _arFmtM(c.bal), aging: c.aging + '天', risk: RISK_LABELS[c.risk] })),
+      benchmark: { dsoTarget: '≤45天', creditRateTarget: '≤0.05%', bdRatioTarget: '≤1%' }
+    };
+  }
+
+  function extractARAgingData() {
+    const clients = getFilteredClients();
+    const b = _arCalcBase(clients);
+    const BUCKETS = ['未逾期', '1-30天', '31-90天', '91-365天', '365天以上'];
+    const AGING_RULES = [
+      c => c.aging <= 0,
+      c => c.aging >= 1  && c.aging <= 30,
+      c => c.aging >= 31 && c.aging <= 90,
+      c => c.aging >= 91 && c.aging <= 365,
+      c => c.aging > 365
+    ];
+    const totalBal = b.totalBal;
+    const buckets  = AGING_RULES.map((fn, i) => {
+      const grp = clients.filter(fn);
+      const amt = grp.reduce((s, c) => s + c.bal, 0);
+      return { label: BUCKETS[i], amount: _arFmtM(amt), pct: totalBal > 0 ? _arFmt(amt / totalBal * 100, 1) + '%' : '0%', count: grp.length };
+    });
+    const overdueBal = clients.filter(c => c.aging > 0).reduce((s, c) => s + c.bal, 0);
+    return {
+      tabName: '帳齡管控', clientCount: clients.length,
+      waa: _arFmt(b.waa, 1) + '天',
+      overduePct: totalBal > 0 ? _arFmt(overdueBal / totalBal * 100, 1) + '%' : '0%',
+      agingBuckets: buckets,
+      top5Aged: [...clients].sort((a, b2) => b2.aging - a.aging).slice(0, 5)
+        .map(c => ({ name: c.name, bal: _arFmtM(c.bal), aging: c.aging + '天', risk: RISK_LABELS[c.risk] || c.risk })),
+      benchmark: { waaTarget: '≤20天', overdueTarget: '<30%', over90Target: '<10%' }
+    };
+  }
+
+  function extractARRiskData() {
+    const clients = getFilteredClients();
+    const riskGroups = {};
+    RISK_ORDER.forEach(r => { riskGroups[r] = clients.filter(c => c.risk === r); });
+    const totalBal = clients.reduce((s, c) => s + c.bal, 0);
+    const riskSummary = RISK_ORDER.map(r => {
+      const grp = riskGroups[r];
+      const amt = grp.reduce((s, c) => s + c.bal, 0);
+      const avgScore = grp.length ? _arFmt(grp.reduce((s, c) => s + c.creditScore, 0) / grp.length, 0) : '—';
+      return {
+        level: RISK_LABELS[r], count: grp.length,
+        amount: _arFmtM(amt),
+        pct: totalBal > 0 ? _arFmt(amt / totalBal * 100, 1) + '%' : '0%',
+        avgCreditScore: avgScore
+      };
+    });
+    const avgScore   = clients.length ? clients.reduce((s, c) => s + c.creditScore, 0) / clients.length : 0;
+    const avgBadDebt = clients.length ? clients.reduce((s, c) => s + (c.rate || 0), 0) / clients.length : 0;
+    const avgAging   = clients.length ? clients.reduce((s, c) => s + c.aging, 0) / clients.length : 0;
+    return {
+      tabName: '風險管控', clientCount: clients.length,
+      radarDimensions: {
+        avgCreditScore: _arFmt(avgScore, 0),
+        avgBadDebtRate: _arFmtPct(avgBadDebt),
+        avgAging: _arFmt(avgAging, 1) + '天',
+        criticalCount: riskGroups['critical'].length,
+        highRiskCount: riskGroups['high'].length
+      },
+      riskSummary,
+      top5Critical: clients.filter(c => c.risk === 'critical' || c.risk === 'high')
+        .sort((a, b2) => b2.loss - a.loss).slice(0, 5)
+        .map(c => ({ name: c.name, bal: _arFmtM(c.bal), aging: c.aging + '天', score: c.creditScore, loss: '$' + Math.round(c.loss) + 'K' }))
+    };
+  }
+
+  function extractARCollectionData() {
+    const clients = getFilteredClients();
+    const b = _arCalcBase(clients);
+    const urgencyList = [...clients]
+      .map(c => ({ ...c, urgency: (c.loss || 0) * c.aging / 1000 }))
+      .filter(c => c.aging > 0)
+      .sort((a, b2) => b2.urgency - a.urgency)
+      .slice(0, 8)
+      .map(c => ({ name: c.name, urgency: _arFmt(c.urgency, 2), loss: '$' + Math.round(c.loss) + 'K', aging: c.aging + '天', strategy: c.strategy }));
+    return {
+      tabName: '回收決策', creditCostRate: (b.creditRate * 100).toFixed(3) + '%',
+      creditCostTarget: '≤0.05%', collectionPriority: urgencyList,
+      totalBadDebtRisk: '$' + Math.round(b.totalLoss) + 'K',
+      highAlerts: clients.filter(c => c.risk === 'critical')
+        .map(c => ({ name: c.name, issue: `帳齡${c.aging}天，壞帳率${(c.rate * 100).toFixed(1)}%`, strategy: c.strategy }))
+    };
+  }
+
+  function extractARLifecycleData() {
+    const clients = getFilteredClients();
+    const lcDist = {};
+    clients.forEach(c => { const lc = c.lifecycle || 'new'; lcDist[lc] = (lcDist[lc] || 0) + 1; });
+    const total = clients.length || 1;
+    return {
+      tabName: '客戶生命週期', clientCount: clients.length,
+      lifecycleDist: {
+        new:      { count: lcDist['new']      || 0, pct: _arFmt((lcDist['new']      || 0) / total * 100, 0) + '%' },
+        growing:  { count: lcDist['growing']  || 0, pct: _arFmt((lcDist['growing']  || 0) / total * 100, 0) + '%' },
+        mature:   { count: lcDist['mature']   || 0, pct: _arFmt((lcDist['mature']   || 0) / total * 100, 0) + '%' },
+        declining:{ count: lcDist['declining']|| 0, pct: _arFmt((lcDist['declining']|| 0) / total * 100, 0) + '%' }
+      },
+      decliningClients: clients.filter(c => c.lifecycle === 'declining')
+        .map(c => ({ name: c.name, bal: _arFmtM(c.bal), creditScore: c.creditScore, aging: c.aging + '天', risk: RISK_LABELS[c.risk] })),
+      avgCreditScoreByLC: {
+        new:       _arFmt(clients.filter(c => c.lifecycle === 'new').reduce((s, c) => s + c.creditScore, 0) / (lcDist['new'] || 1), 0),
+        growing:   _arFmt(clients.filter(c => c.lifecycle === 'growing').reduce((s, c) => s + c.creditScore, 0) / (lcDist['growing'] || 1), 0),
+        mature:    _arFmt(clients.filter(c => c.lifecycle === 'mature').reduce((s, c) => s + c.creditScore, 0) / (lcDist['mature'] || 1), 0),
+        declining: _arFmt(clients.filter(c => c.lifecycle === 'declining').reduce((s, c) => s + c.creditScore, 0) / (lcDist['declining'] || 1), 0)
+      }
+    };
+  }
+
+  function extractARPortfolioData() {
+    const clients = getFilteredClients();
+    const totalBal = clients.reduce((s, c) => s + c.bal, 0);
+    const totalRev = clients.reduce((s, c) => s + c.revenue, 0);
+    function quadrant(c) {
+      const highRev  = c.revenue / (totalRev / clients.length) > 1;
+      const lowRisk  = c.risk === 'safe' || c.risk === 'low';
+      if (highRev  && lowRisk)  return 'star';
+      if (!highRev && lowRisk)  return 'stable';
+      if (highRev  && !lowRisk) return 'potential';
+      return 'problem';
+    }
+    const QUAD_LABELS = { star: '⭐ 明星客戶', stable: '🔵 穩定客戶', potential: '⚡ 潛力客戶', problem: '❌ 問題客戶' };
+    const quadDist = { star: 0, stable: 0, potential: 0, problem: 0 };
+    clients.forEach(c => { quadDist[quadrant(c)]++; });
+    const quadBal = { star: 0, stable: 0, potential: 0, problem: 0 };
+    clients.forEach(c => { quadBal[quadrant(c)] += c.bal; });
+    return {
+      tabName: '授信組合矩陣', clientCount: clients.length,
+      quadrantDist: Object.entries(quadDist).map(([k, v]) => ({
+        label: QUAD_LABELS[k], count: v,
+        bal: _arFmtM(quadBal[k]),
+        pct: totalBal > 0 ? _arFmt(quadBal[k] / totalBal * 100, 1) + '%' : '0%'
+      })),
+      problemClients: clients.filter(c => quadrant(c) === 'problem')
+        .map(c => ({ name: c.name, bal: _arFmtM(c.bal), risk: RISK_LABELS[c.risk], score: c.creditScore })),
+      starClients: clients.filter(c => quadrant(c) === 'star')
+        .map(c => ({ name: c.name, bal: _arFmtM(c.bal), score: c.creditScore, revenue: _arFmtM(c.revenue) }))
+    };
+  }
+
+  function extractARForecastData() {
+    const simRate   = parseFloat(document.getElementById('sim-rate')?.value  || '6');
+    const simInt    = parseFloat(document.getElementById('sim-intensity')?.value || '1.0');
+    const simDays   = parseInt([...document.querySelectorAll('input[name="sim-days"]')].find(r => r.checked)?.value || '60');
+    const simCostRate = document.getElementById('simCostRate')?.textContent || '—';
+    const simBadDebt  = document.getElementById('simBadDebt')?.textContent  || '—';
+    const simImprove  = document.getElementById('simImprove')?.textContent  || '—';
+    return {
+      tabName: '預測引擎',
+      simParams: { annualRate: simRate + '%', collectionIntensity: simInt, forecastDays: simDays + '天' },
+      simResults: { creditCostRate: simCostRate, expectedBadDebt: simBadDebt, improvement: simImprove },
+      scenarios: {
+        optimistic: { dso: '32天', costRate: '0.041%', desc: '高風險客戶30天內全數還款' },
+        baseline:   { dso: '42.5天', costRate: '0.065%', desc: '維持當前收款速度' },
+        pessimistic:{ dso: '51天', costRate: '0.089%', desc: '3家高風險客戶進一步逾期' }
+      },
+      currentParams: { annualRate: PARAMS.rate + '%', bdRates: PARAMS.bd.join('% / ') + '%' }
+    };
+  }
+
+  function extractARSalesData() {
+    const clients = getFilteredClients();
+    const spMap = {};
+    clients.forEach(c => {
+      const sp = c.salesperson || '未知';
+      if (!spMap[sp]) spMap[sp] = { name: sp, clients: [], totalBal: 0, totalRev: 0, agingSum: 0, highRisk: 0 };
+      spMap[sp].clients.push(c);
+      spMap[sp].totalBal += c.bal;
+      spMap[sp].totalRev += c.revenue;
+      spMap[sp].agingSum += c.bal * c.aging;
+      if (c.risk === 'high' || c.risk === 'critical') spMap[sp].highRisk++;
+    });
+    const spData = Object.values(spMap).map(sp => ({
+      name: sp.name, clientCount: sp.clients.length,
+      totalBal: _arFmtM(sp.totalBal), waa: sp.totalBal > 0 ? _arFmt(sp.agingSum / sp.totalBal, 1) + '天' : '—',
+      highRiskCount: sp.highRisk,
+      avgCreditScore: _arFmt(sp.clients.reduce((s, c) => s + c.creditScore, 0) / (sp.clients.length || 1), 0)
+    })).sort((a, b2) => parseFloat(b2.totalBal) - parseFloat(a.totalBal));
+    return {
+      tabName: '業務歸因', salespersonCount: Object.keys(spMap).length,
+      salespersonPerformance: spData,
+      highRiskSalespersons: spData.filter(sp => sp.highRiskCount > 0)
+        .map(sp => ({ name: sp.name, highRiskCount: sp.highRiskCount, totalBal: sp.totalBal }))
+    };
+  }
+
+  function formatARContextForPrompt(data) {
+    try { return JSON.stringify(data, null, 2).slice(0, 3000); }
+    catch { return String(data).slice(0, 2000); }
+  }
+
+  // ══ AR-11. Module E：System Prompt ══
+
+  const AR_AI_SYSTEM_PROMPT = `你是一位專業的台灣應收帳款（AR）管理資料分析師，具備以下專長：
+
+【核心指標與計算】
+- DSO（Days Sales Outstanding）：應收帳款期末餘額 / 滾動年營收 × 365，目標 ≤45天
+- AR 周轉率（AR Turnover）：累計營收 / 平均應收帳款，目標 ≥8x
+- 加權平均帳齡（WAA）：Σ(餘額×帳齡) / Σ餘額，目標 ≤20天
+- 信用資金成本率（Credit Cost Rate）：資金成本 / 總營收，目標 ≤0.05%
+- 壞帳準備率（Bad Debt Ratio）：預計壞帳 / 應收餘額，目標 ≤1%
+
+【帳齡分析】
+- 五級帳齡分桶：未逾期 / 1-30天 / 31-90天 / 91-365天 / 365天以上
+- 逾期比率 >30% 屬警戒，90天以上 >10% 為高風險
+- 帳齡遷移趨勢分析：觀察帳齡是否向高風險桶移動
+
+【信用風險管理】
+- 五級風險分類：無風險(safe) / 低風險(low) / 中風險(mid) / 高風險(high) / 超高風險(critical)
+- 信用評分區間：≥80分安全、60-79分注意、40-59分警戒、<40分危險
+- 緊迫指數 = 預計壞帳 × 逾期天數 / 1000
+
+【催收策略】
+- 超高風險：現款結算 / 停止出貨 / 法律途徑
+- 高風險：立即清收 / 上門催收 / 擔保要求
+- 中風險：加強催收 / 電話追蹤
+- 低風險：定期對帳 / 關係維護
+- 無風險：提升授信額度 / 策略合作
+
+【客戶分類框架】
+- 生命週期：新客戶期(首0-3筆) → 成長期(4-10筆) → 成熟期(10筆以上+高評分) → 衰退期(評分下降)
+- 授信矩陣：⭐明星(高業績/低風險) / ⚡潛力(高業績/高風險) / 🔵穩定(低業績/低風險) / ❌問題(低業績/高風險)
+
+【台灣產業背景】
+- 台灣半導體、電子製造業特性：大客戶集中、帳期60-90天為常見、季節性出貨影響帳齡
+- 正常付款期限：Net 30 為主流，Net 60 需關注，超過 Net 90 為異常
+
+請遵循以下回覆原則：
+1. 使用繁體中文回覆
+2. 先給出總結判斷（1-2句），再分析細節
+3. 用表格或條列清晰呈現數據對比
+4. 清楚標示層次：**事實** → **分析** → **推論** → **建議**
+5. 提供具體可執行的改善建議，標明優先順序（🔴 緊急 / 🟡 近期 / 🟢 長期）
+6. 指出數據中的異常訊號或潛在風險
+7. 適度引用業界基準值進行對比（DSO≤45天、壞帳率≤1%、信用成本率≤0.05%）
+8. 金額以 $M（百萬）或 $K（千元）表示，百分比保留適當精度`;
+
+  // ══ AR-12. Module D：對話匯出與快取 ══
+
+  const AR_AI_CHAT_CACHE_KEY = 'arV5AiChatCache';
+
+  function saveAIChatCache() {
+    try {
+      const cache = {
+        savedAt: new Date().toISOString(),
+        provider: arAiState.provider, model: arAiState.model || '',
+        chatHistory: arAiState.chatHistory.slice(-20)
+      };
+      localStorage.setItem(AR_AI_CHAT_CACHE_KEY, JSON.stringify(cache));
+    } catch {}
+  }
+
+  function restoreAIChat() {
+    try {
+      const raw = localStorage.getItem(AR_AI_CHAT_CACHE_KEY);
+      if (!raw) { _arShowToast('無暫存對話可還原', true); return; }
+      const cache = JSON.parse(raw);
+      if (!cache.chatHistory || cache.chatHistory.length === 0) { _arShowToast('暫存對話為空', true); return; }
+      const container = document.getElementById('ai-messages');
+      if (!container) return;
+      container.innerHTML = '';
+      arAiState.chatHistory = [];
+      cache.chatHistory.forEach(m => { appendAIMessage(m.content, m.role, false); arAiState.chatHistory.push(m); });
+      const savedAt = new Date(cache.savedAt).toLocaleString('zh-TW');
+      const infoDiv = document.createElement('div');
+      infoDiv.style.cssText = 'text-align:center;font-size:0.65rem;color:var(--text-dim);margin:4px 0 8px';
+      infoDiv.textContent = `🕐 已還原 ${Math.floor(cache.chatHistory.length / 2)} 輪對話（${savedAt}）`;
+      container.prepend(infoDiv);
+      _arShowToast('對話已還原');
+    } catch(e) { _arShowToast('還原失敗：' + e.message, true); }
+  }
+
+  function _arCheckRestoreBtn() {
+    try {
+      const raw = localStorage.getItem(AR_AI_CHAT_CACHE_KEY);
+      const hasCache = raw && JSON.parse(raw)?.chatHistory?.length > 0;
+      const btn = document.getElementById('ai-restore-btn');
+      if (btn) btn.style.display = hasCache ? 'inline-block' : 'none';
+    } catch {}
+  }
+
+  function exportAIChat() {
+    if (arAiState.chatHistory.length === 0) { _arShowToast('尚無對話可匯出', true); return; }
+    const now = new Date();
+    const ts  = now.toISOString().slice(0, 16).replace('T', '_').replace(':', '-');
+    const provName = AR_AI_PROVIDERS[arAiState.provider]?.name || arAiState.provider;
+    let md = `# AR 量子智慧戰情室 AI 對話記錄\n\n`;
+    md += `- **匯出時間**：${now.toLocaleString('zh-TW')}\n`;
+    md += `- **供應商**：${provName}\n`;
+    md += `- **模型**：${arAiState.model || '未知'}\n`;
+    md += `- **對話輪數**：${Math.ceil(arAiState.chatHistory.length / 2)}\n\n---\n\n`;
+    arAiState.chatHistory.forEach((m, i) => {
+      const role = m.role === 'user' ? '👤 使用者' : '🤖 AI 助手';
+      md += `### ${role}\n\n${m.content}\n\n`;
+      if (i < arAiState.chatHistory.length - 1) md += '---\n\n';
+    });
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `AR_AI_Chat_${ts}.md`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+    _arShowToast('對話已匯出為 Markdown 檔案');
+  }
+
+  function copyAllChat() {
+    if (arAiState.chatHistory.length === 0) { _arShowToast('尚無對話可複製', true); return; }
+    let text = '';
+    arAiState.chatHistory.forEach(m => {
+      text += `${m.role === 'user' ? '【使用者】' : '【AI 助手】'}\n${m.content}\n\n`;
+    });
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => _arShowToast('全部對話已複製到剪貼簿')).catch(() => _arFallbackCopy(text));
+    } else { _arFallbackCopy(text); }
+  }
+
+  function _arFallbackCopy(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); _arShowToast('已複製（fallback 模式）'); }
+    catch { _arShowToast('複製失敗，請手動選取', true); }
+    document.body.removeChild(ta);
+  }
+
+  function _arShowToast(msg, isError) {
+    let toast = document.getElementById('ar-ai-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'ar-ai-toast';
+      toast.style.cssText = `position:fixed;bottom:80px;right:24px;padding:8px 16px;border-radius:10px;
+        font-size:0.78rem;z-index:2000;transition:opacity 0.3s;pointer-events:none;`;
+      document.body.appendChild(toast);
+    }
+    toast.style.background = isError ? 'rgba(255,71,87,0.92)' : 'rgba(46,213,115,0.92)';
+    toast.style.color = '#fff';
+    toast.textContent  = msg;
+    toast.style.opacity = '1';
+    clearTimeout(toast._timer);
+    toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 2200);
+  }
+
+  // ══ AR-13. Markdown 輕量渲染器 ══
+
+  function renderMarkdownAI(text) {
+    if (!text) return '';
+    let t = text
+      .replace(/```[\w]*\n?([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+      .replace(/`([^`\n]+)`/g, '<code>$1</code>')
+      .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*([^*\n]+)\*/g, '<em>$1</em>')
+      .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+      .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+      .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+      .replace(/^---+$/gm, '<hr>')
+      .replace(/^[*-] (.+)$/gm, '<li>$1</li>')
+      .replace(/^\d+\. (.+)$/gm, '<li>$1</li>');
+    t = t.replace(/((?:<li>[^<]*<\/li>\s*)+)/g, '<ul>$1</ul>');
+    const tableRegex = /(?:^\|.+\|\s*\n)+/gm;
+    t = t.replace(tableRegex, block => {
+      const rows = block.trim().split('\n');
+      let html = '<table>', isFirst = true;
+      rows.forEach(row => {
+        if (/^\|[\s:-]+\|/.test(row)) return;
+        const cells = row.split('|').filter((_, i, a) => i > 0 && i < a.length - 1);
+        html += isFirst
+          ? '<tr>' + cells.map(c => `<th>${c.trim()}</th>`).join('') + '</tr>'
+          : '<tr>' + cells.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>';
+        isFirst = false;
+      });
+      return html + '</table>';
+    });
+    t = t.replace(/\n\n+/g, '</p><p>').replace(/\n/g, '<br>');
+    return '<p>' + t + '</p>';
+  }
+
+  // ══ AR-14. 面板初始化 ══
+
+  function initAIPanelEvents() {
+    const provSel = document.getElementById('ai-provider');
+    if (provSel) provSel.addEventListener('change', onProviderChange);
+    const mdlSel = document.getElementById('ai-model');
+    if (mdlSel) mdlSel.addEventListener('change', () => { arAiState.model = mdlSel.value; });
+    const custMdl = document.getElementById('ai-custom-model');
+    if (custMdl) custMdl.addEventListener('input', () => { arAiState.model = custMdl.value; });
+    const fmtSel = document.getElementById('ai-api-format');
+    if (fmtSel) fmtSel.addEventListener('change', () => { arAiState.apiFormat = fmtSel.value; });
+    const keyInp = document.getElementById('ai-apikey');
+    if (keyInp) keyInp.addEventListener('input', () => {
+      arAiState.apiKey = keyInp.value;
+      setAIStatus(keyInp.value ? 'ready' : 'idle');
+    });
+    const urlInp = document.getElementById('ai-custom-url');
+    if (urlInp) urlInp.addEventListener('input', () => { arAiState.customBaseUrl = urlInp.value; });
+    arUpdateModelOptions();
+    _arToggleCustomRows(arAiState.provider);
+    // 頁籤切換時同步更新 context label
+    document.querySelectorAll('.tab-item').forEach(btn => {
+      btn.addEventListener('click', () => setTimeout(updateARContextLabel, 80));
+    });
+    // 頁面載入自動還原設定與對話快取
+    loadAISettings();
+    _arCheckRestoreBtn();
+  }
+  </script>
+</body>
+
+</html>
