@@ -37,6 +37,9 @@ const CORS_HEADERS = {
     'HTTP-Referer, X-Title, X-Proxy-Target',
 };
 
+/** Edge Function 逾時：25 秒（Vercel Edge 上限 30 秒，留 5 秒緩衝） */
+const TIMEOUT_MS = 25000;
+
 export default async function handler(req) {
   // ── OPTIONS preflight ────────────────────────────────────────────────────
   if (req.method === 'OPTIONS') {
@@ -74,6 +77,10 @@ export default async function handler(req) {
       ? await req.arrayBuffer()
       : undefined;
 
+  // ── 逾時控制器 ────────────────────────────────────────────────────────────
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
   // ── 發出請求至上游 ────────────────────────────────────────────────────────
   let upstream;
   try {
@@ -81,12 +88,24 @@ export default async function handler(req) {
       method: req.method,
       headers: forwardHeaders,
       body: body && body.byteLength > 0 ? body : undefined,
+      signal: controller.signal,
     });
+    clearTimeout(timeoutId);
   } catch (err) {
-    console.error('[AR-Proxy] fetch error:', err);
+    clearTimeout(timeoutId);
+    console.error('[AR-Proxy] fetch error:', err.name, String(err));
+    const isTimeout = err.name === 'AbortError';
     return new Response(
-      JSON.stringify({ error: '連線失敗：' + String(err) }),
-      { status: 502, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } }
+      JSON.stringify({
+        error: isTimeout
+          ? `上游 API 逾時（>${TIMEOUT_MS / 1000}s）：${targetUrl}`
+          : `連線失敗：${String(err)}`,
+        target: targetUrl,
+      }),
+      {
+        status: isTimeout ? 504 : 502,
+        headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
+      }
     );
   }
 
