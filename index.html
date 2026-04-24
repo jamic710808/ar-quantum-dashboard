@@ -3595,7 +3595,7 @@
                          && window.location.hostname !== '127.0.0.1';
     const hint = cb.checked
       ? (_isRemoteToggle
-          ? '✅ 代理已啟用（Vercel 模式）→ 請求透過 /api/proxy 轉發'
+          ? '✅ 代理已啟用（Cloudflare 模式）→ 請求透過 Cloudflare Worker 轉發'
           : `✅ 代理已啟用（本機模式）→ 請確認已執行：python ar_cors_proxy.py ${arAiState.proxyPort}`)
       : '⚪ 代理已關閉，直接連接 API';
     _arShowToast(hint);
@@ -3828,12 +3828,12 @@
     );
     // 若代理啟用，自動偵測環境：
     //   本機（localhost / 127.0.0.1）→ Python 本機 Proxy (http://localhost:PORT/ar-proxy)
-    //   Vercel / 遠端部署           → 同域 Edge Function (/api/proxy)
+    //   Vercel / 遠端部署           → Cloudflare Worker CORS Proxy
     const _proxyPort = arAiState.proxyPort || 8765;
     const _isRemote  = window.location.hostname !== 'localhost'
                     && window.location.hostname !== '127.0.0.1';
     const _proxyBase = _isRemote
-      ? '/api/proxy'
+      ? 'https://tiny-cell-0a82.jamic710808.workers.dev'
       : `http://localhost:${_proxyPort}/ar-proxy`;
     const baseUrl = arAiState.proxyEnabled ? _proxyBase : _realBaseUrl;
     // 傳遞原始目標給 Proxy
