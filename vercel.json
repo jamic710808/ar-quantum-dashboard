@@ -1,10 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "api/proxy/[...path].js": {
-      "regions": ["sin1", "hkg1"]
-    }
-  },
   "rewrites": [
     {
       "source": "/api/proxy/(.*)",
