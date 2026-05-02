@@ -11,3 +11,10 @@ __pycache__/
 # 忽略系統檔案
 .DS_Store
 Thumbs.db
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
