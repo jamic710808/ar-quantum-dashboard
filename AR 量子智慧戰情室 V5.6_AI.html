@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AR 量子智慧戰情室 V5.0 QUANTUM</title>
+  <title>AR 量子智慧戰情室 V5.6 QUANTUM | AR QUANTUM INTELLIGENCE CENTER V5.6 HYPERION EDITION</title>
   <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
@@ -1068,16 +1068,6 @@
       color: var(--danger);
     }
 
-    /* ===== FOOTER ===== */
-    .footer {
-      text-align: center;
-      padding: 16px;
-      font-size: 10px;
-      color: var(--text-dim);
-      border-top: 1px solid var(--border);
-      margin-top: 20px;
-    }
-
     /* ===== RESPONSIVE ===== */
     @media (max-width: 900px) {
       .kpi-grid {
@@ -1109,7 +1099,7 @@
     }
 
     /* ================================================================
-       AR V5.0 — AI 分析模組 CSS
+       AR V5.6 — AI 分析模組 CSS
     ================================================================ */
 
     /* AI 側邊滑出面板 */
@@ -1327,6 +1317,16 @@
     [data-theme="light"] .ai-tab-btn {
       background: rgba(200,150,12,0.07); border-color: rgba(200,150,12,0.25); color: var(--accent);
     }
+
+    .page-footer-copyright {
+      margin-top: 16px;
+      padding: 10px;
+      text-align: center;
+      color: var(--text-dim);
+      font-size: .72rem;
+      border-top: 1px solid var(--border);
+      letter-spacing: .03em;
+    }
   </style>
 </head>
 
@@ -1339,8 +1339,8 @@
     <header class="header">
       <div class="header-top">
         <div class="header-title">
-          <h1>AR 量子智慧戰情室 V5.0 QUANTUM</h1>
-          <div class="subtitle">AR QUANTUM INTELLIGENCE CENTER V5.0 HYPERION EDITION</div>
+          <h1>AR 量子智慧戰情室 V5.6 QUANTUM</h1>
+          <div class="subtitle">AR QUANTUM INTELLIGENCE CENTER V5.6 HYPERION EDITION</div>
         </div>
         <div class="header-right">
           <div>
@@ -2037,13 +2037,6 @@
           <button class="toolbar-btn primary" onclick="applyParams()">✅ 套用並重新計算</button>
         </div>
       </div>
-    </div>
-
-    <!-- ===== FOOTER ===== -->
-    <div class="footer">
-      AR 量子智慧戰情室 V5.0 QUANTUM HYPERION EDITION &copy; 2026 |
-      <a href="https://www.perplexity.ai/computer" target="_blank" rel="noopener noreferrer">Created with Perplexity
-        Computer</a>
     </div>
 
   </div><!-- /app-wrapper -->
@@ -3595,7 +3588,7 @@
                          && window.location.hostname !== '127.0.0.1';
     const hint = cb.checked
       ? (_isRemoteToggle
-          ? '✅ 代理已啟用（Vercel 模式）→ 請求透過 /api/proxy 轉發'
+          ? '✅ 代理已啟用（Cloudflare 模式）→ 請求透過 Cloudflare Worker 轉發'
           : `✅ 代理已啟用（本機模式）→ 請確認已執行：python ar_cors_proxy.py ${arAiState.proxyPort}`)
       : '⚪ 代理已關閉，直接連接 API';
     _arShowToast(hint);
@@ -3828,12 +3821,12 @@
     );
     // 若代理啟用，自動偵測環境：
     //   本機（localhost / 127.0.0.1）→ Python 本機 Proxy (http://localhost:PORT/ar-proxy)
-    //   Vercel / 遠端部署           → 同域 Edge Function (/api/proxy)
+    //   Vercel / 遠端部署           → Cloudflare Worker CORS Proxy
     const _proxyPort = arAiState.proxyPort || 8765;
     const _isRemote  = window.location.hostname !== 'localhost'
                     && window.location.hostname !== '127.0.0.1';
     const _proxyBase = _isRemote
-      ? '/api/proxy'
+      ? 'https://tiny-cell-0a82.jamic710808.workers.dev'
       : `http://localhost:${_proxyPort}/ar-proxy`;
     const baseUrl = arAiState.proxyEnabled ? _proxyBase : _realBaseUrl;
     // 傳遞原始目標給 Proxy
@@ -3939,7 +3932,7 @@
     // OpenRouter 必要標頭
     if (arAiState.provider === 'openrouter') {
       headers['HTTP-Referer'] = window.location.href || 'https://ar-dashboard.local';
-      headers['X-Title'] = 'AR 量子智慧戰情室';
+      headers['X-Title'] = 'AR Quantum Dashboard';
     }
 
     const body = {
@@ -4691,6 +4684,7 @@
     _arCheckRestoreBtn();
   }
   </script>
+  <div class="page-footer-copyright">AR 量子智慧戰情室 V5.6 QUANTUM HYPERION EDITION © 2026 | Created BY Ken.liu劉炳祥 with Claude &amp; Perplexity Computer</div>
 </body>
 
 </html>
