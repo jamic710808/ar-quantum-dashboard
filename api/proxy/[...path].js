@@ -1,89 +1,153 @@
 /**
- * AR 量子智慧戰情室 — Vercel Edge Function CORS Proxy
- * 路徑：api/proxy/[...path].js
- * 執行環境：Vercel Edge Runtime
+ * 現金流量儀表板 — Vercel Function CORS 代理（Node.js）
+ *
+ * 支援 8 個 AI 供應商（OpenAI / Anthropic / DeepSeek / MiniMax /
+ *                      硅基流動 / OpenRouter / Ollama / 自訂）
+ *
+ * 用法：
+ *   GET/POST  https://your-app.vercel.app/api/proxy?url=<encoded-target-url>
  */
 
-export const config = { runtime: 'edge' };
+/* ── CORS 標頭 ── */
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': [
+    'Authorization',
+    'Content-Type',
+    'x-api-key',
+    'anthropic-version',
+    'anthropic-dangerous-direct-browser-access',
+    'OpenAI-Organization', 'OpenAI-Beta',
+    'HTTP-Referer', 'X-Title',
+    'api-key',
+    'X-Goog-Api-Key',
+    'X-MiniMax-Group-Id',
+  ].join(', '),
+  'Access-Control-Max-Age': '86400',
+};
 
-const SKIP_REQ = new Set([
+/* ── 不轉發給上游的 request headers ── */
+const SKIP_REQ_HEADERS = new Set([
   'host', 'content-length', 'connection', 'transfer-encoding',
-  'te', 'trailer', 'upgrade', 'x-proxy-target',
+  'te', 'trailer', 'upgrade', 'origin', 'referer',
+  'x-vercel-id', 'x-vercel-deployment-url', 'x-real-ip',
   'x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto',
+  'x-vercel-forwarded-for', 'x-vercel-ip-country',
+  'x-vercel-ip-country-region', 'x-vercel-ip-city',
+  'x-vercel-ip-latitude', 'x-vercel-ip-longitude',
+  'x-vercel-ip-timezone', 'x-vercel-internal-ingress-bucket',
+  'cdn-loop', 'forwarded',
 ]);
 
-const SKIP_RESP = new Set([
+/* ── 不轉發給 client 的 response headers ── */
+const SKIP_RESP_HEADERS = new Set([
   'access-control-allow-origin',
   'access-control-allow-headers',
   'access-control-allow-methods',
-  'access-control-allow-credentials',
+  'access-control-max-age',
+  'content-encoding',
+  'content-length',
   'transfer-encoding',
   'connection',
 ]);
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers':
-    'Authorization, Content-Type, x-api-key, anthropic-version, ' +
-    'HTTP-Referer, X-Title, X-Proxy-Target',
-};
-
-export default async function handler(req) {
-  if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 200,
-      headers: { ...CORS_HEADERS, 'Content-Length': '0' },
-    });
-  }
-
-  const targetBase = req.headers.get('x-proxy-target')?.trim().replace(/\/$/, '');
-  if (!targetBase) {
-    return new Response(
-      JSON.stringify({ error: 'X-Proxy-Target header 未提供' }),
-      { status: 400, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } }
-    );
-  }
-
-  const url = new URL(req.url);
-  const restPath = url.pathname.replace(/^\/api\/proxy/, '') || '';
-  const targetUrl = targetBase + restPath;
-
-  const forwardHeaders = {};
-  for (const [k, v] of req.headers.entries()) {
-    if (!SKIP_REQ.has(k.toLowerCase())) {
-      forwardHeaders[k] = v;
-    }
-  }
-
-  const body =
-    req.method !== 'GET' && req.method !== 'HEAD'
-      ? await req.arrayBuffer()
-      : undefined;
-
-  let upstream;
-  try {
-    upstream = await fetch(targetUrl, {
-      method: req.method,
-      headers: forwardHeaders,
-      body: body && body.byteLength > 0 ? body : undefined,
-    });
-  } catch (err) {
-    return new Response(
-      JSON.stringify({ error: '連線失敗：' + String(err), target: targetUrl }),
-      { status: 502, headers: { 'Content-Type': 'application/json', ...CORS_HEADERS } }
-    );
-  }
-
-  const respHeaders = new Headers(CORS_HEADERS);
-  for (const [k, v] of upstream.headers.entries()) {
-    if (!SKIP_RESP.has(k.toLowerCase())) {
-      respHeaders.set(k, v);
-    }
-  }
-
-  return new Response(upstream.body, {
-    status: upstream.status,
-    headers: respHeaders,
+function sendJson(res, status, body) {
+  const payload = JSON.stringify(body, null, 2);
+  res.writeHead(status, {
+    'Content-Type': 'application/json; charset=utf-8',
+    ...CORS_HEADERS,
   });
+  res.end(payload);
+}
+
+/* ── 主 handler（Node.js IncomingMessage / ServerResponse） ── */
+export default async function handler(req, res) {
+  // CORS preflight
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200, CORS_HEADERS);
+    res.end();
+    return;
+  }
+
+  // Node.js runtime 的 req.url 只有路徑，需補 host 才能用 URL API 解析
+  const baseUrl = `https://${req.headers.host}`;
+  const parsedUrl = new URL(req.url, baseUrl);
+  const target = parsedUrl.searchParams.get('url');
+
+  if (!target) {
+    sendJson(res, 400, {
+      error: '缺少 ?url= 參數，無法轉發',
+      hint: '正確用法：/api/proxy?url=https%3A%2F%2Fapi.openai.com%2Fv1%2Fchat%2Fcompletions',
+    });
+    return;
+  }
+
+  // 驗證目標 URL
+  let targetUrl;
+  try {
+    targetUrl = new URL(target);
+    if (!['http:', 'https:'].includes(targetUrl.protocol)) {
+      sendJson(res, 400, { error: `不支援的協議：${targetUrl.protocol}` });
+      return;
+    }
+  } catch {
+    sendJson(res, 400, { error: `無效的目標 URL：${target.slice(0, 100)}` });
+    return;
+  }
+
+  // 組裝轉發 headers
+  const fwdHeaders = {};
+  for (const [key, value] of Object.entries(req.headers)) {
+    if (!SKIP_REQ_HEADERS.has(key.toLowerCase())) {
+      fwdHeaders[key] = value;
+    }
+  }
+
+  // 收集 request body（POST / PUT / PATCH）
+  let body = undefined;
+  if (req.method !== 'GET' && req.method !== 'HEAD') {
+    const chunks = [];
+    for await (const chunk of req) {
+      chunks.push(chunk);
+    }
+    body = Buffer.concat(chunks);
+  }
+
+  // 轉發請求
+  try {
+    const upstream = await fetch(target, {
+      method: req.method,
+      headers: fwdHeaders,
+      body,
+      redirect: 'manual',
+    });
+
+    // 設定回應 status + headers
+    const respHeaders = { ...CORS_HEADERS };
+    upstream.headers.forEach((value, key) => {
+      if (!SKIP_RESP_HEADERS.has(key.toLowerCase())) {
+        respHeaders[key] = value;
+      }
+    });
+    res.writeHead(upstream.status, respHeaders);
+
+    // 串流回傳（SSE / chunked 直接穿透）
+    if (upstream.body) {
+      const reader = upstream.body.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        res.write(value);
+      }
+    }
+    res.end();
+  } catch (e) {
+    if (!res.headersSent) {
+      sendJson(res, 502, {
+        error: `代理錯誤：${e.message || e}`,
+        target: target.slice(0, 200),
+      });
+    }
+  }
 }
