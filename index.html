@@ -2099,19 +2099,16 @@
       </div>
       <div class="ai-settings-row" id="ai-proxy-row">
         <label>CORS 代理</label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-          <input type="checkbox" id="ai-proxy-toggle"
-                 onchange="onProxyToggle()"
-                 style="width:15px;height:15px;accent-color:var(--accent);">
-          <span style="font-size:0.75rem;color:var(--text-dim);">本機代理（解決 CORS）</span>
-        </label>
-        <input type="number" id="ai-proxy-port" value="8765" min="1024" max="65535"
-               title="本機代理 Port（Vercel 部署時無需此設定）"
-               style="width:68px;flex:none;font-size:0.72rem;padding:2px 5px;"
-               placeholder="8765">
-        <span id="ai-proxy-env-hint"
-              style="font-size:0.68rem;color:var(--text-dim);flex:none;white-space:nowrap;">
-        </span>
+        <select id="ai-proxy-mode" onchange="onProxyModeChange()" style="flex:1;">
+          <option value="off">關閉（直連）</option>
+          <option value="local">本機代理（:8080）</option>
+          <option value="custom">自訂代理 URL</option>
+        </select>
+      </div>
+      <div class="ai-settings-row" id="ai-proxy-url-row" style="display:none;">
+        <label>代理 URL</label>
+        <input type="text" id="ai-proxy-url"
+               placeholder="https://your-app.vercel.app/api/proxy">
       </div>
       <div class="ai-settings-row">
         <label>API Key</label>
@@ -3429,7 +3426,7 @@
     isStreaming: false, abortController: null,
     savedKeys: {}, apiFormat: 'openai',
     customBaseUrl: '', customBaseUrls: {}, temperature: 0.3, maxTokens: 4096, useStream: true,
-    proxyEnabled: false, proxyPort: 8765
+    corsProxyMode: 'off', corsProxyUrl: ''
   };
 
   const AR_AI_PROVIDERS = {
@@ -3539,18 +3536,12 @@
     const fmtSel = document.getElementById('ai-api-format');
     if (fmtSel) fmtSel.value = arAiState.apiFormat || 'openai';
     _arFillUrlForProvider(arAiState.provider);
-    const proxyCb = document.getElementById('ai-proxy-toggle');
-    if (proxyCb) proxyCb.checked = arAiState.proxyEnabled || false;
-    const proxyPt = document.getElementById('ai-proxy-port');
-    if (proxyPt) proxyPt.value = arAiState.proxyPort || 8765;
-    // 顯示環境提示
-    const _envHint = document.getElementById('ai-proxy-env-hint');
-    if (_envHint) {
-      const _isR = window.location.hostname !== 'localhost'
-               && window.location.hostname !== '127.0.0.1';
-      _envHint.textContent = _isR ? '🌐 Vercel 模式' : '💻 本機模式';
-      _envHint.style.color = _isR ? '#7ec8e3' : 'var(--text-dim)';
-    }
+    const proxyModeSel = document.getElementById('ai-proxy-mode');
+    if (proxyModeSel) proxyModeSel.value = arAiState.corsProxyMode || 'off';
+    const proxyUrlInp = document.getElementById('ai-proxy-url');
+    if (proxyUrlInp) proxyUrlInp.value = arAiState.corsProxyUrl || '';
+    const proxyUrlRow = document.getElementById('ai-proxy-url-row');
+    if (proxyUrlRow) proxyUrlRow.style.display = arAiState.corsProxyMode === 'custom' ? 'flex' : 'none';
   }
 
   function _arToggleCustomRows(provider) {
@@ -3578,20 +3569,18 @@
     _arFillUrlForProvider(arAiState.provider);
   }
 
-  function onProxyToggle() {
-    const cb   = document.getElementById('ai-proxy-toggle');
-    const port = document.getElementById('ai-proxy-port');
-    if (!cb) return;
-    arAiState.proxyEnabled = cb.checked;
-    if (port) arAiState.proxyPort = parseInt(port.value) || 8765;
-    const _isRemoteToggle = window.location.hostname !== 'localhost'
-                         && window.location.hostname !== '127.0.0.1';
-    const hint = cb.checked
-      ? (_isRemoteToggle
-          ? '✅ 代理已啟用（Cloudflare 模式）→ 請求透過 Cloudflare Worker 轉發'
-          : `✅ 代理已啟用（本機模式）→ 請確認已執行：python ar_cors_proxy.py ${arAiState.proxyPort}`)
-      : '⚪ 代理已關閉，直接連接 API';
-    _arShowToast(hint);
+  function onProxyModeChange() {
+    const sel = document.getElementById('ai-proxy-mode');
+    const row = document.getElementById('ai-proxy-url-row');
+    if (!sel || !row) return;
+    arAiState.corsProxyMode = sel.value;
+    row.style.display = sel.value === 'custom' ? 'flex' : 'none';
+    const hintMap = {
+      off:    '⚪ 代理已關閉，直接連接 API',
+      local:  '✅ 本機代理模式 → 請確認已執行本機代理伺服器（port 8080）',
+      custom: '✅ 自訂代理 URL 模式 → 請在下方填入代理端點'
+    };
+    _arShowToast(hintMap[sel.value] || '');
   }
 
   function _arFillKeyForProvider(provider) {
@@ -3697,6 +3686,11 @@
   const AR_AI_STORAGE_KEY = 'arV5AiSettings';
 
   function saveAISettings() {
+    // 先從 UI 同步代理設定到 state
+    const _pmSel = document.getElementById('ai-proxy-mode');
+    const _puInp = document.getElementById('ai-proxy-url');
+    if (_pmSel) arAiState.corsProxyMode = _pmSel.value || 'off';
+    if (_puInp) arAiState.corsProxyUrl  = _puInp.value.trim();
     const cfg  = getAIConfig();
     const saved = arAiState.savedKeys || {};
     if (cfg.key && arAiState.provider) saved[arAiState.provider] = btoa(cfg.key);
@@ -3715,8 +3709,8 @@
       customBaseUrl: cfg.customUrl, customBaseUrls: _urlOverrides,
       temperature: cfg.temp, maxTokens: cfg.maxTok, useStream: cfg.stream,
       apiFormat: cfg.apiFormat, savedKeys: saved,
-      proxyEnabled: arAiState.proxyEnabled,
-      proxyPort: arAiState.proxyPort || 8765
+      corsProxyMode: arAiState.corsProxyMode || 'off',
+      corsProxyUrl: arAiState.corsProxyUrl || ''
     };
     try {
       localStorage.setItem(AR_AI_STORAGE_KEY, JSON.stringify(payload));
@@ -3739,8 +3733,10 @@
       if (s.apiFormat)      arAiState.apiFormat      = s.apiFormat;
       if (s.savedKeys)      arAiState.savedKeys      = s.savedKeys;
       if (s.customBaseUrls)  arAiState.customBaseUrls  = s.customBaseUrls;
-      if (s.proxyEnabled != null) arAiState.proxyEnabled = s.proxyEnabled;
-      if (s.proxyPort)        arAiState.proxyPort        = s.proxyPort;
+      // 相容舊版 proxyEnabled boolean → 遷移至 corsProxyMode
+      if (s.corsProxyMode) arAiState.corsProxyMode = s.corsProxyMode;
+      else if (s.proxyEnabled === true) arAiState.corsProxyMode = 'local';
+      if (s.corsProxyUrl) arAiState.corsProxyUrl = s.corsProxyUrl;
       function applyToUI() {
         const provSel = document.getElementById('ai-provider');
         if (provSel) { provSel.value = arAiState.provider; _arToggleCustomRows(arAiState.provider); }
@@ -3764,6 +3760,12 @@
         const fmtSel = document.getElementById('ai-api-format');
         if (fmtSel && s.apiFormat) fmtSel.value = s.apiFormat;
         _arFillKeyForProvider(arAiState.provider);
+        const _proxyModeSel = document.getElementById('ai-proxy-mode');
+        if (_proxyModeSel) _proxyModeSel.value = arAiState.corsProxyMode || 'off';
+        const _proxyUrlInp = document.getElementById('ai-proxy-url');
+        if (_proxyUrlInp) _proxyUrlInp.value = arAiState.corsProxyUrl || '';
+        const _proxyUrlRow = document.getElementById('ai-proxy-url-row');
+        if (_proxyUrlRow) _proxyUrlRow.style.display = arAiState.corsProxyMode === 'custom' ? 'flex' : 'none';
         _arRefreshSaveHint();
       }
       if (document.readyState === 'complete' || document.readyState === 'interactive') applyToUI();
@@ -3819,18 +3821,7 @@
     const _realBaseUrl = _arNormalizeBaseUrl(
       (cfg.customUrl ? cfg.customUrl : '') || prov.baseUrl
     );
-    // 若代理啟用，自動偵測環境：
-    //   本機（localhost / 127.0.0.1）→ Python 本機 Proxy (http://localhost:PORT/ar-proxy)
-    //   Vercel / 遠端部署           → Cloudflare Worker CORS Proxy
-    const _proxyPort = arAiState.proxyPort || 8765;
-    const _isRemote  = window.location.hostname !== 'localhost'
-                    && window.location.hostname !== '127.0.0.1';
-    const _proxyBase = _isRemote
-      ? 'https://tiny-cell-0a82.jamic710808.workers.dev'
-      : `http://localhost:${_proxyPort}/ar-proxy`;
-    const baseUrl = arAiState.proxyEnabled ? _proxyBase : _realBaseUrl;
-    // 傳遞原始目標給 Proxy
-    arAiState._proxyTargetUrl = arAiState.proxyEnabled ? _realBaseUrl : null;
+    const baseUrl = arWrapWithProxy(_realBaseUrl);
     const model   = cfg.model || prov.defaultModel || '';
     if (!model) { appendAIError('請選擇或輸入模型名稱'); return null; }
 
@@ -3868,6 +3859,18 @@
       const sendBtn = document.getElementById('ai-send-btn');
       if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = '發送'; }
     }
+  }
+
+  /* 統一回傳「最終要 fetch 的 URL」：依代理模式包裝原始端點 */
+  function arWrapWithProxy(originalUrl) {
+    if (arAiState.corsProxyMode === 'local') {
+      return `http://localhost:8080/proxy?url=${encodeURIComponent(originalUrl)}`;
+    }
+    if (arAiState.corsProxyMode === 'custom' && arAiState.corsProxyUrl) {
+      const base = arAiState.corsProxyUrl.replace(/\/$/, '');
+      return `${base}?url=${encodeURIComponent(originalUrl)}`;
+    }
+    return originalUrl;
   }
 
   /**
@@ -3925,10 +3928,6 @@
     if (sysContent) cleanMsgs.unshift({ role: 'system', content: sysContent });
 
     const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.key}` };
-    // 代理模式：告訴本機 Proxy 要轉發到哪裡
-    if (arAiState.proxyEnabled && arAiState._proxyTargetUrl) {
-      headers['X-Proxy-Target'] = arAiState._proxyTargetUrl;
-    }
     // OpenRouter 必要標頭
     if (arAiState.provider === 'openrouter') {
       headers['HTTP-Referer'] = window.location.href || 'https://ar-dashboard.local';
