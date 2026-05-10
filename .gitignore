@@ -12,3 +12,10 @@ __pycache__/
 .DS_Store
 Thumbs.db
 .tmp.driveupload/
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
