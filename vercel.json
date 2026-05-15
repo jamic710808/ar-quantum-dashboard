@@ -1,13 +1,27 @@
 {
-  "version": 2,
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "functions": {
+    "api/proxy.js": {
+      "maxDuration": 300
+    }
+  },
   "rewrites": [
+    { "source": "/", "destination": "/index.html" }
+  ],
+  "headers": [
     {
-      "source": "/api/proxy/(.*)",
-      "destination": "/api/proxy/[...path]"
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
     },
     {
-      "source": "/api/proxy",
-      "destination": "/api/proxy/[...path]"
+      "source": "/index.html",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=300, must-revalidate" }
+      ]
     }
   ]
 }

@@ -1273,6 +1273,13 @@
     }
     .ai-send-btn:hover { opacity: 0.85; }
     .ai-send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .quick-reply-chip {
+      background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.25);
+      border-radius: 14px; color: var(--accent2, #00d4ff); font-size: 0.65rem;
+      padding: 3px 10px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .quick-reply-chip:hover { background: rgba(0, 212, 255, 0.2); border-color: rgba(0, 212, 255, 0.5); }
+    .quick-reply-chip:active { opacity: 0.7; }
     .ai-clear-btn {
       background: rgba(255,71,87,0.12); border: 1px solid rgba(255,71,87,0.2);
       border-radius: 8px; color: var(--danger); cursor: pointer; font-size: 0.8rem;
@@ -2099,19 +2106,16 @@
       </div>
       <div class="ai-settings-row" id="ai-proxy-row">
         <label>CORS 代理</label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-          <input type="checkbox" id="ai-proxy-toggle"
-                 onchange="onProxyToggle()"
-                 style="width:15px;height:15px;accent-color:var(--accent);">
-          <span style="font-size:0.75rem;color:var(--text-dim);">本機代理（解決 CORS）</span>
-        </label>
-        <input type="number" id="ai-proxy-port" value="8765" min="1024" max="65535"
-               title="本機代理 Port（Vercel 部署時無需此設定）"
-               style="width:68px;flex:none;font-size:0.72rem;padding:2px 5px;"
-               placeholder="8765">
-        <span id="ai-proxy-env-hint"
-              style="font-size:0.68rem;color:var(--text-dim);flex:none;white-space:nowrap;">
-        </span>
+        <select id="ai-proxy-mode" onchange="onProxyModeChange()" style="flex:1;">
+          <option value="off">關閉（直連）</option>
+          <option value="local">本機代理（:8080）</option>
+          <option value="custom">自訂代理 URL</option>
+        </select>
+      </div>
+      <div class="ai-settings-row" id="ai-proxy-url-row" style="display:none;">
+        <label>代理 URL</label>
+        <input type="text" id="ai-proxy-url"
+               placeholder="https://your-app.vercel.app/api/proxy">
       </div>
       <div class="ai-settings-row">
         <label>API Key</label>
@@ -2155,6 +2159,12 @@
           background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.22);
           color:var(--accent);cursor:pointer">🕐 還原上次對話</button>
       </div>
+    </div>
+
+    <!-- 動態 Quick Reply 區 -->
+    <div id="quick-reply-container" style="display:none; padding:8px 14px 4px; border-top:1px solid rgba(255,215,0,0.06); flex-shrink:0;">
+      <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:5px;">💡 推薦追問</div>
+      <div id="quick-reply-chips" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
     </div>
 
     <!-- 輸入區 -->
@@ -3429,7 +3439,7 @@
     isStreaming: false, abortController: null,
     savedKeys: {}, apiFormat: 'openai',
     customBaseUrl: '', customBaseUrls: {}, temperature: 0.3, maxTokens: 4096, useStream: true,
-    proxyEnabled: false, proxyPort: 8765
+    corsProxyMode: 'off', corsProxyUrl: ''
   };
 
   const AR_AI_PROVIDERS = {
@@ -3539,18 +3549,12 @@
     const fmtSel = document.getElementById('ai-api-format');
     if (fmtSel) fmtSel.value = arAiState.apiFormat || 'openai';
     _arFillUrlForProvider(arAiState.provider);
-    const proxyCb = document.getElementById('ai-proxy-toggle');
-    if (proxyCb) proxyCb.checked = arAiState.proxyEnabled || false;
-    const proxyPt = document.getElementById('ai-proxy-port');
-    if (proxyPt) proxyPt.value = arAiState.proxyPort || 8765;
-    // 顯示環境提示
-    const _envHint = document.getElementById('ai-proxy-env-hint');
-    if (_envHint) {
-      const _isR = window.location.hostname !== 'localhost'
-               && window.location.hostname !== '127.0.0.1';
-      _envHint.textContent = _isR ? '🌐 Vercel 模式' : '💻 本機模式';
-      _envHint.style.color = _isR ? '#7ec8e3' : 'var(--text-dim)';
-    }
+    const proxyModeSel = document.getElementById('ai-proxy-mode');
+    if (proxyModeSel) proxyModeSel.value = arAiState.corsProxyMode || 'off';
+    const proxyUrlInp = document.getElementById('ai-proxy-url');
+    if (proxyUrlInp) proxyUrlInp.value = arAiState.corsProxyUrl || '';
+    const proxyUrlRow = document.getElementById('ai-proxy-url-row');
+    if (proxyUrlRow) proxyUrlRow.style.display = arAiState.corsProxyMode === 'custom' ? 'flex' : 'none';
   }
 
   function _arToggleCustomRows(provider) {
@@ -3578,20 +3582,18 @@
     _arFillUrlForProvider(arAiState.provider);
   }
 
-  function onProxyToggle() {
-    const cb   = document.getElementById('ai-proxy-toggle');
-    const port = document.getElementById('ai-proxy-port');
-    if (!cb) return;
-    arAiState.proxyEnabled = cb.checked;
-    if (port) arAiState.proxyPort = parseInt(port.value) || 8765;
-    const _isRemoteToggle = window.location.hostname !== 'localhost'
-                         && window.location.hostname !== '127.0.0.1';
-    const hint = cb.checked
-      ? (_isRemoteToggle
-          ? '✅ 代理已啟用（Cloudflare 模式）→ 請求透過 Cloudflare Worker 轉發'
-          : `✅ 代理已啟用（本機模式）→ 請確認已執行：python ar_cors_proxy.py ${arAiState.proxyPort}`)
-      : '⚪ 代理已關閉，直接連接 API';
-    _arShowToast(hint);
+  function onProxyModeChange() {
+    const sel = document.getElementById('ai-proxy-mode');
+    const row = document.getElementById('ai-proxy-url-row');
+    if (!sel || !row) return;
+    arAiState.corsProxyMode = sel.value;
+    row.style.display = sel.value === 'custom' ? 'flex' : 'none';
+    const hintMap = {
+      off:    '⚪ 代理已關閉，直接連接 API',
+      local:  '✅ 本機代理模式 → 請確認已執行本機代理伺服器（port 8080）',
+      custom: '✅ 自訂代理 URL 模式 → 請在下方填入代理端點'
+    };
+    _arShowToast(hintMap[sel.value] || '');
   }
 
   function _arFillKeyForProvider(provider) {
@@ -3697,6 +3699,11 @@
   const AR_AI_STORAGE_KEY = 'arV5AiSettings';
 
   function saveAISettings() {
+    // 先從 UI 同步代理設定到 state
+    const _pmSel = document.getElementById('ai-proxy-mode');
+    const _puInp = document.getElementById('ai-proxy-url');
+    if (_pmSel) arAiState.corsProxyMode = _pmSel.value || 'off';
+    if (_puInp) arAiState.corsProxyUrl  = _puInp.value.trim();
     const cfg  = getAIConfig();
     const saved = arAiState.savedKeys || {};
     if (cfg.key && arAiState.provider) saved[arAiState.provider] = btoa(cfg.key);
@@ -3715,8 +3722,8 @@
       customBaseUrl: cfg.customUrl, customBaseUrls: _urlOverrides,
       temperature: cfg.temp, maxTokens: cfg.maxTok, useStream: cfg.stream,
       apiFormat: cfg.apiFormat, savedKeys: saved,
-      proxyEnabled: arAiState.proxyEnabled,
-      proxyPort: arAiState.proxyPort || 8765
+      corsProxyMode: arAiState.corsProxyMode || 'off',
+      corsProxyUrl: arAiState.corsProxyUrl || ''
     };
     try {
       localStorage.setItem(AR_AI_STORAGE_KEY, JSON.stringify(payload));
@@ -3739,8 +3746,10 @@
       if (s.apiFormat)      arAiState.apiFormat      = s.apiFormat;
       if (s.savedKeys)      arAiState.savedKeys      = s.savedKeys;
       if (s.customBaseUrls)  arAiState.customBaseUrls  = s.customBaseUrls;
-      if (s.proxyEnabled != null) arAiState.proxyEnabled = s.proxyEnabled;
-      if (s.proxyPort)        arAiState.proxyPort        = s.proxyPort;
+      // 相容舊版 proxyEnabled boolean → 遷移至 corsProxyMode
+      if (s.corsProxyMode) arAiState.corsProxyMode = s.corsProxyMode;
+      else if (s.proxyEnabled === true) arAiState.corsProxyMode = 'local';
+      if (s.corsProxyUrl) arAiState.corsProxyUrl = s.corsProxyUrl;
       function applyToUI() {
         const provSel = document.getElementById('ai-provider');
         if (provSel) { provSel.value = arAiState.provider; _arToggleCustomRows(arAiState.provider); }
@@ -3764,6 +3773,12 @@
         const fmtSel = document.getElementById('ai-api-format');
         if (fmtSel && s.apiFormat) fmtSel.value = s.apiFormat;
         _arFillKeyForProvider(arAiState.provider);
+        const _proxyModeSel = document.getElementById('ai-proxy-mode');
+        if (_proxyModeSel) _proxyModeSel.value = arAiState.corsProxyMode || 'off';
+        const _proxyUrlInp = document.getElementById('ai-proxy-url');
+        if (_proxyUrlInp) _proxyUrlInp.value = arAiState.corsProxyUrl || '';
+        const _proxyUrlRow = document.getElementById('ai-proxy-url-row');
+        if (_proxyUrlRow) _proxyUrlRow.style.display = arAiState.corsProxyMode === 'custom' ? 'flex' : 'none';
         _arRefreshSaveHint();
       }
       if (document.readyState === 'complete' || document.readyState === 'interactive') applyToUI();
@@ -3819,18 +3834,7 @@
     const _realBaseUrl = _arNormalizeBaseUrl(
       (cfg.customUrl ? cfg.customUrl : '') || prov.baseUrl
     );
-    // 若代理啟用，自動偵測環境：
-    //   本機（localhost / 127.0.0.1）→ Python 本機 Proxy (http://localhost:PORT/ar-proxy)
-    //   Vercel / 遠端部署           → Cloudflare Worker CORS Proxy
-    const _proxyPort = arAiState.proxyPort || 8765;
-    const _isRemote  = window.location.hostname !== 'localhost'
-                    && window.location.hostname !== '127.0.0.1';
-    const _proxyBase = _isRemote
-      ? 'https://tiny-cell-0a82.jamic710808.workers.dev'
-      : `http://localhost:${_proxyPort}/ar-proxy`;
-    const baseUrl = arAiState.proxyEnabled ? _proxyBase : _realBaseUrl;
-    // 傳遞原始目標給 Proxy
-    arAiState._proxyTargetUrl = arAiState.proxyEnabled ? _realBaseUrl : null;
+    const baseUrl = arWrapWithProxy(_realBaseUrl);
     const model   = cfg.model || prov.defaultModel || '';
     if (!model) { appendAIError('請選擇或輸入模型名稱'); return null; }
 
@@ -3857,6 +3861,7 @@
         saveAIChatCache();
       }
       setAIStatus('ready');
+      generateQuickReplies(fullText || '');
       return fullText;
     } catch(err) {
       _handleAIError(err, msgEl);
@@ -3868,6 +3873,18 @@
       const sendBtn = document.getElementById('ai-send-btn');
       if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = '發送'; }
     }
+  }
+
+  /* 統一回傳「最終要 fetch 的 URL」：依代理模式包裝原始端點 */
+  function arWrapWithProxy(originalUrl) {
+    if (arAiState.corsProxyMode === 'local') {
+      return `http://localhost:8080/proxy?url=${encodeURIComponent(originalUrl)}`;
+    }
+    if (arAiState.corsProxyMode === 'custom' && arAiState.corsProxyUrl) {
+      const base = arAiState.corsProxyUrl.replace(/\/$/, '');
+      return `${base}?url=${encodeURIComponent(originalUrl)}`;
+    }
+    return originalUrl;
   }
 
   /**
@@ -3925,10 +3942,6 @@
     if (sysContent) cleanMsgs.unshift({ role: 'system', content: sysContent });
 
     const headers = { 'Content-Type': 'application/json', 'Authorization': `Bearer ${cfg.key}` };
-    // 代理模式：告訴本機 Proxy 要轉發到哪裡
-    if (arAiState.proxyEnabled && arAiState._proxyTargetUrl) {
-      headers['X-Proxy-Target'] = arAiState._proxyTargetUrl;
-    }
     // OpenRouter 必要標頭
     if (arAiState.provider === 'openrouter') {
       headers['HTTP-Referer'] = window.location.href || 'https://ar-dashboard.local';
@@ -4142,6 +4155,8 @@
         background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.22);
         color:var(--accent);cursor:pointer">🕐 還原上次對話</button>
     </div>`;
+    document.getElementById('quick-reply-container').style.display = 'none';
+    document.getElementById('quick-reply-chips').innerHTML = '';
     _arCheckRestoreBtn();
   }
 
@@ -4170,6 +4185,12 @@
 
     appendAIMessage(text, 'user', false);
     arAiState.chatHistory.push({ role: 'user', content: text });
+
+    // 清除舊的 Quick Reply，等待新回覆產生
+    const qrContainer = document.getElementById('quick-reply-container');
+    if (qrContainer) qrContainer.style.display = 'none';
+    const qrChips = document.getElementById('quick-reply-chips');
+    if (qrChips) qrChips.innerHTML = '';
 
     updateARContextLabel();
     const ctxData = extractARTabData(arAiState.currentTabId);
@@ -4212,6 +4233,12 @@
 
     appendAIMessage(userMsg, 'user', false);
     arAiState.chatHistory = [{ role: 'user', content: userMsg }];
+
+    // 清除舊的 Quick Reply
+    const qrContainer = document.getElementById('quick-reply-container');
+    if (qrContainer) qrContainer.style.display = 'none';
+    const qrChips = document.getElementById('quick-reply-chips');
+    if (qrChips) qrChips.innerHTML = '';
 
     const messages = [
       { role: 'system', content: AR_AI_SYSTEM_PROMPT },
@@ -4602,6 +4629,162 @@
     try { document.execCommand('copy'); _arShowToast('已複製（fallback 模式）'); }
     catch { _arShowToast('複製失敗，請手動選取', true); }
     document.body.removeChild(ta);
+  }
+
+  // ══ AR-X. Quick Reply 動態建議 ══
+  function generateQuickReplies(lastResponse) {
+    const container = document.getElementById('quick-reply-container');
+    const chips = document.getElementById('quick-reply-chips');
+    if (!container || !chips) return;
+    chips.innerHTML = '';
+
+    if (!lastResponse || arAiState.chatHistory.length === 0) {
+      container.style.display = 'none';
+      return;
+    }
+
+    const tabId = arAiState.currentTabId || 'tab0';
+    const ctxData = extractARTabData(tabId);
+    const ctxStr = formatARContextForPrompt(ctxData);
+    const recentUserMsg = _getLastUserMessage();
+
+    // 呼叫輕量模型生成建議（使用同一套 callAI 機制，但 request 獨立）
+    const qrPrompt = _buildQuickReplyPrompt(lastResponse, recentUserMsg, ctxStr, tabId);
+    const qrMessages = [
+      { role: 'system', content: AR_AI_SYSTEM_PROMPT },
+      { role: 'system', content: qrPrompt }
+    ];
+
+    callAIForQuickReplies(qrMessages, chips, container);
+  }
+
+  function _getLastUserMessage() {
+    for (let i = arAiState.chatHistory.length - 1; i >= 0; i--) {
+      if (arAiState.chatHistory[i].role === 'user') {
+        return arAiState.chatHistory[i].content;
+      }
+    }
+    return '';
+  }
+
+  function _buildQuickReplyPrompt(response, lastUserMsg, ctxStr, tabId) {
+    return `你是一個智慧應收帳款分析助手的推薦追問教練。
+根據 AI 助手的回覆與對話歷史，生成 4~6 個精準的追問建議，幫助使用者深化分析。
+
+【當前 AI 回覆摘要】
+${response.slice(0, 600)}
+
+【對話歷史最後一筆使用者提問】
+${lastUserMsg || '(首輪對話，無前例)'}
+
+【當前頁籤數據摘要】
+${ctxStr}
+
+【輸出格式】（只輸出 JSON，嚴禁其他文字）
+{
+  "replies": [
+    "追問1（以繁體中文呈現）",
+    "追問2",
+    "..."
+  ]
+}
+
+要求：
+- 每個追問不超過 25 字
+- 涵蓋：風險細節、數字驗證、帳齡分布、業務員責任、策略建議、法規備註等不同維度
+- 不要重複歷史問題
+- 不要"Yes/No"式問題`;
+  }
+
+  async function callAIForQuickReplies(messages, chipsEl, containerEl) {
+    // 用與主訊息相同的 provider，但強制非串流、较短 maxTokens
+    const cfg = getAIConfig();
+    const isCustom = arAiState.provider === 'custom';
+    const isOllama = arAiState.provider === 'ollama';
+    const model = (isCustom || isOllama)
+      ? ((document.getElementById('ai-custom-model') || {}).value || '')
+      : ((document.getElementById('ai-model') || {}).value || '');
+
+    if (!cfg.key && !isOllama) return;
+
+    const baseUrl = _arGetBaseUrl();
+    const fmt = isCustom ? cfg.apiFormat
+      : (arAiState.provider === 'anthropic' ? 'anthropic' : 'openai');
+
+    try {
+      const ctrl = new AbortController();
+      const timeoutId = setTimeout(() => ctrl.abort(), 15000); // 15s timeout
+
+      const body = fmt === 'anthropic'
+        ? { model, messages, max_tokens: 512, system: messages.find(m => m.role === 'system')?.content || '' }
+        : { model, messages, max_tokens: 512 };
+
+      const resp = await fetch(arWrapWithProxy(baseUrl + '/chat/completions'), {
+        method: 'POST',
+        headers: _arBuildHeaders(cfg.key, fmt),
+        body: JSON.stringify(fmt === 'anthropic' ? body : { ...body, stream: false }),
+        signal: ctrl.signal
+      });
+
+      clearTimeout(timeoutId);
+      if (!resp.ok) return;
+
+      const json = await resp.json();
+      const text = fmt === 'anthropic'
+        ? (json.content?.[0]?.text || '')
+        : (json.choices?.[0]?.message?.content || '');
+
+      let replies = [];
+      try {
+        const parsed = JSON.parse(text);
+        replies = parsed.replies || [];
+      } catch {
+        // fallback：嘗試從文字中解析 JSON 陣列
+        const match = text.match(/\"replies\"\s*:\s*\[([\s\S]*)\]/);
+        if (match) {
+          try { replies = JSON.parse('[' + match[1] + ']'); } catch {}
+        }
+      }
+
+      if (replies.length === 0) return;
+
+      replies.slice(0, 6).forEach(reply => {
+        const btn = document.createElement('button');
+        btn.className = 'quick-reply-chip';
+        btn.textContent = reply;
+        btn.onclick = () => {
+          const input = document.getElementById('ai-input');
+          if (input) { input.value = reply; input.focus(); }
+        };
+        chips.appendChild(btn);
+      });
+
+      containerEl.style.display = 'block';
+    } catch (e) {
+      // silent fail — quick replies 是增強功能，不影響主流程
+    }
+  }
+
+  function _arGetBaseUrl() {
+    if (arAiState.corsProxyMode !== 'off') {
+      return arAiState.provider === 'custom' || arAiState.provider === 'ollama'
+        ? (arAiState.customBaseUrl || AR_AI_PROVIDERS[arAiState.provider]?.baseUrl || '')
+        : (AR_AI_PROVIDERS[arAiState.provider]?.baseUrl || '');
+    }
+    return arAiState.provider === 'custom'
+      ? (arAiState.customBaseUrl || '')
+      : (AR_AI_PROVIDERS[arAiState.provider]?.baseUrl || '');
+  }
+
+  function _arBuildHeaders(key, fmt) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (fmt === 'anthropic') {
+      headers['x-api-key'] = key;
+      headers['anthropic-version'] = '2023-06-01';
+    } else {
+      headers['Authorization'] = 'Bearer ' + key;
+    }
+    return headers;
   }
 
   function _arShowToast(msg, isError) {

@@ -1273,6 +1273,13 @@
     }
     .ai-send-btn:hover { opacity: 0.85; }
     .ai-send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .quick-reply-chip {
+      background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.25);
+      border-radius: 14px; color: var(--accent2, #00d4ff); font-size: 0.65rem;
+      padding: 3px 10px; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+    }
+    .quick-reply-chip:hover { background: rgba(0, 212, 255, 0.2); border-color: rgba(0, 212, 255, 0.5); }
+    .quick-reply-chip:active { opacity: 0.7; }
     .ai-clear-btn {
       background: rgba(255,71,87,0.12); border: 1px solid rgba(255,71,87,0.2);
       border-radius: 8px; color: var(--danger); cursor: pointer; font-size: 0.8rem;
@@ -2152,6 +2159,12 @@
           background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.22);
           color:var(--accent);cursor:pointer">🕐 還原上次對話</button>
       </div>
+    </div>
+
+    <!-- 動態 Quick Reply 區 -->
+    <div id="quick-reply-container" style="display:none; padding:8px 14px 4px; border-top:1px solid rgba(255,215,0,0.06); flex-shrink:0;">
+      <div style="font-size:0.6rem; color:var(--text-dim); margin-bottom:5px;">💡 推薦追問</div>
+      <div id="quick-reply-chips" style="display:flex; flex-wrap:wrap; gap:5px;"></div>
     </div>
 
     <!-- 輸入區 -->
@@ -3848,6 +3861,7 @@
         saveAIChatCache();
       }
       setAIStatus('ready');
+      generateQuickReplies(fullText || '');
       return fullText;
     } catch(err) {
       _handleAIError(err, msgEl);
@@ -4141,6 +4155,8 @@
         background:rgba(255,215,0,0.12);border:1px solid rgba(255,215,0,0.22);
         color:var(--accent);cursor:pointer">🕐 還原上次對話</button>
     </div>`;
+    document.getElementById('quick-reply-container').style.display = 'none';
+    document.getElementById('quick-reply-chips').innerHTML = '';
     _arCheckRestoreBtn();
   }
 
@@ -4169,6 +4185,12 @@
 
     appendAIMessage(text, 'user', false);
     arAiState.chatHistory.push({ role: 'user', content: text });
+
+    // 清除舊的 Quick Reply，等待新回覆產生
+    const qrContainer = document.getElementById('quick-reply-container');
+    if (qrContainer) qrContainer.style.display = 'none';
+    const qrChips = document.getElementById('quick-reply-chips');
+    if (qrChips) qrChips.innerHTML = '';
 
     updateARContextLabel();
     const ctxData = extractARTabData(arAiState.currentTabId);
@@ -4211,6 +4233,12 @@
 
     appendAIMessage(userMsg, 'user', false);
     arAiState.chatHistory = [{ role: 'user', content: userMsg }];
+
+    // 清除舊的 Quick Reply
+    const qrContainer = document.getElementById('quick-reply-container');
+    if (qrContainer) qrContainer.style.display = 'none';
+    const qrChips = document.getElementById('quick-reply-chips');
+    if (qrChips) qrChips.innerHTML = '';
 
     const messages = [
       { role: 'system', content: AR_AI_SYSTEM_PROMPT },
@@ -4601,6 +4629,162 @@
     try { document.execCommand('copy'); _arShowToast('已複製（fallback 模式）'); }
     catch { _arShowToast('複製失敗，請手動選取', true); }
     document.body.removeChild(ta);
+  }
+
+  // ══ AR-X. Quick Reply 動態建議 ══
+  function generateQuickReplies(lastResponse) {
+    const container = document.getElementById('quick-reply-container');
+    const chips = document.getElementById('quick-reply-chips');
+    if (!container || !chips) return;
+    chips.innerHTML = '';
+
+    if (!lastResponse || arAiState.chatHistory.length === 0) {
+      container.style.display = 'none';
+      return;
+    }
+
+    const tabId = arAiState.currentTabId || 'tab0';
+    const ctxData = extractARTabData(tabId);
+    const ctxStr = formatARContextForPrompt(ctxData);
+    const recentUserMsg = _getLastUserMessage();
+
+    // 呼叫輕量模型生成建議（使用同一套 callAI 機制，但 request 獨立）
+    const qrPrompt = _buildQuickReplyPrompt(lastResponse, recentUserMsg, ctxStr, tabId);
+    const qrMessages = [
+      { role: 'system', content: AR_AI_SYSTEM_PROMPT },
+      { role: 'system', content: qrPrompt }
+    ];
+
+    callAIForQuickReplies(qrMessages, chips, container);
+  }
+
+  function _getLastUserMessage() {
+    for (let i = arAiState.chatHistory.length - 1; i >= 0; i--) {
+      if (arAiState.chatHistory[i].role === 'user') {
+        return arAiState.chatHistory[i].content;
+      }
+    }
+    return '';
+  }
+
+  function _buildQuickReplyPrompt(response, lastUserMsg, ctxStr, tabId) {
+    return `你是一個智慧應收帳款分析助手的推薦追問教練。
+根據 AI 助手的回覆與對話歷史，生成 4~6 個精準的追問建議，幫助使用者深化分析。
+
+【當前 AI 回覆摘要】
+${response.slice(0, 600)}
+
+【對話歷史最後一筆使用者提問】
+${lastUserMsg || '(首輪對話，無前例)'}
+
+【當前頁籤數據摘要】
+${ctxStr}
+
+【輸出格式】（只輸出 JSON，嚴禁其他文字）
+{
+  "replies": [
+    "追問1（以繁體中文呈現）",
+    "追問2",
+    "..."
+  ]
+}
+
+要求：
+- 每個追問不超過 25 字
+- 涵蓋：風險細節、數字驗證、帳齡分布、業務員責任、策略建議、法規備註等不同維度
+- 不要重複歷史問題
+- 不要"Yes/No"式問題`;
+  }
+
+  async function callAIForQuickReplies(messages, chipsEl, containerEl) {
+    // 用與主訊息相同的 provider，但強制非串流、较短 maxTokens
+    const cfg = getAIConfig();
+    const isCustom = arAiState.provider === 'custom';
+    const isOllama = arAiState.provider === 'ollama';
+    const model = (isCustom || isOllama)
+      ? ((document.getElementById('ai-custom-model') || {}).value || '')
+      : ((document.getElementById('ai-model') || {}).value || '');
+
+    if (!cfg.key && !isOllama) return;
+
+    const baseUrl = _arGetBaseUrl();
+    const fmt = isCustom ? cfg.apiFormat
+      : (arAiState.provider === 'anthropic' ? 'anthropic' : 'openai');
+
+    try {
+      const ctrl = new AbortController();
+      const timeoutId = setTimeout(() => ctrl.abort(), 15000); // 15s timeout
+
+      const body = fmt === 'anthropic'
+        ? { model, messages, max_tokens: 512, system: messages.find(m => m.role === 'system')?.content || '' }
+        : { model, messages, max_tokens: 512 };
+
+      const resp = await fetch(arWrapWithProxy(baseUrl + '/chat/completions'), {
+        method: 'POST',
+        headers: _arBuildHeaders(cfg.key, fmt),
+        body: JSON.stringify(fmt === 'anthropic' ? body : { ...body, stream: false }),
+        signal: ctrl.signal
+      });
+
+      clearTimeout(timeoutId);
+      if (!resp.ok) return;
+
+      const json = await resp.json();
+      const text = fmt === 'anthropic'
+        ? (json.content?.[0]?.text || '')
+        : (json.choices?.[0]?.message?.content || '');
+
+      let replies = [];
+      try {
+        const parsed = JSON.parse(text);
+        replies = parsed.replies || [];
+      } catch {
+        // fallback：嘗試從文字中解析 JSON 陣列
+        const match = text.match(/\"replies\"\s*:\s*\[([\s\S]*)\]/);
+        if (match) {
+          try { replies = JSON.parse('[' + match[1] + ']'); } catch {}
+        }
+      }
+
+      if (replies.length === 0) return;
+
+      replies.slice(0, 6).forEach(reply => {
+        const btn = document.createElement('button');
+        btn.className = 'quick-reply-chip';
+        btn.textContent = reply;
+        btn.onclick = () => {
+          const input = document.getElementById('ai-input');
+          if (input) { input.value = reply; input.focus(); }
+        };
+        chips.appendChild(btn);
+      });
+
+      containerEl.style.display = 'block';
+    } catch (e) {
+      // silent fail — quick replies 是增強功能，不影響主流程
+    }
+  }
+
+  function _arGetBaseUrl() {
+    if (arAiState.corsProxyMode !== 'off') {
+      return arAiState.provider === 'custom' || arAiState.provider === 'ollama'
+        ? (arAiState.customBaseUrl || AR_AI_PROVIDERS[arAiState.provider]?.baseUrl || '')
+        : (AR_AI_PROVIDERS[arAiState.provider]?.baseUrl || '');
+    }
+    return arAiState.provider === 'custom'
+      ? (arAiState.customBaseUrl || '')
+      : (AR_AI_PROVIDERS[arAiState.provider]?.baseUrl || '');
+  }
+
+  function _arBuildHeaders(key, fmt) {
+    const headers = { 'Content-Type': 'application/json' };
+    if (fmt === 'anthropic') {
+      headers['x-api-key'] = key;
+      headers['anthropic-version'] = '2023-06-01';
+    } else {
+      headers['Authorization'] = 'Bearer ' + key;
+    }
+    return headers;
   }
 
   function _arShowToast(msg, isError) {
