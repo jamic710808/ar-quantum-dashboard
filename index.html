@@ -4632,6 +4632,8 @@
   }
 
   // ══ AR-X. Quick Reply 動態建議 ══
+  const QR_STATES = { IDLE: 0, LOADING: 1, DONE: 2, ERROR: 3 };
+
   function generateQuickReplies(lastResponse) {
     const container = document.getElementById('quick-reply-container');
     const chips = document.getElementById('quick-reply-chips');
@@ -4643,15 +4645,17 @@
       return;
     }
 
+    // 先顯示載入狀態
+    chips.innerHTML = '<span style="font-size:0.6rem;color:var(--text-dim);">✨ 產生推薦追問中…</span>';
+    container.style.display = 'flex';
+
     const tabId = arAiState.currentTabId || 'tab0';
     const ctxData = extractARTabData(tabId);
     const ctxStr = formatARContextForPrompt(ctxData);
     const recentUserMsg = _getLastUserMessage();
 
-    // 呼叫輕量模型生成建議（使用同一套 callAI 機制，但 request 獨立）
     const qrPrompt = _buildQuickReplyPrompt(lastResponse, recentUserMsg, ctxStr, tabId);
     const qrMessages = [
-      { role: 'system', content: AR_AI_SYSTEM_PROMPT },
       { role: 'system', content: qrPrompt }
     ];
 
@@ -4668,36 +4672,25 @@
   }
 
   function _buildQuickReplyPrompt(response, lastUserMsg, ctxStr, tabId) {
-    return `你是一個智慧應收帳款分析助手的推薦追問教練。
-根據 AI 助手的回覆與對話歷史，生成 4~6 個精準的追問建議，幫助使用者深化分析。
+    // 精簡版 prompt，減少 tokens
+    const tabLabels = {
+      'tab0': '總覽', 'tab1': '帳齡分析', 'tab2': '風險雷達',
+      'tab3': '催收優先序列', 'tab4': '客戶生命週期', 'tab5': '授信組合矩陣',
+      'tab6': 'What-If 情境', 'tab7': '業務員績效'
+    };
+    return `你是 AR 量子智慧戰情室的推薦追問教練。
+根據 AI 回覆與上下文，生成 3~5 個繁體中文追問（每句 ≤20 字）。
+可用維度：風險細節、數字驗證、帳齡分布、業務員責任、策略建議、法律行動。
 
-【當前 AI 回覆摘要】
-${response.slice(0, 600)}
+【頁籤】${tabLabels[tabId] || '總覽'}
+【AI 回覆摘要】${response.slice(0, 400)}
+【使用者問題】${(lastUserMsg || '首輪提問').slice(0, 100)}
 
-【對話歷史最後一筆使用者提問】
-${lastUserMsg || '(首輪對話，無前例)'}
-
-【當前頁籤數據摘要】
-${ctxStr}
-
-【輸出格式】（只輸出 JSON，嚴禁其他文字）
-{
-  "replies": [
-    "追問1（以繁體中文呈現）",
-    "追問2",
-    "..."
-  ]
-}
-
-要求：
-- 每個追問不超過 25 字
-- 涵蓋：風險細節、數字驗證、帳齡分布、業務員責任、策略建議、法規備註等不同維度
-- 不要重複歷史問題
-- 不要"Yes/No"式問題`;
+輸出嚴格 JSON（無其他文字）：
+{"replies":["追問1","追問2","追問3"]}`;
   }
 
   async function callAIForQuickReplies(messages, chipsEl, containerEl) {
-    // 用與主訊息相同的 provider，但強制非串流、较短 maxTokens
     const cfg = getAIConfig();
     const isCustom = arAiState.provider === 'custom';
     const isOllama = arAiState.provider === 'ollama';
@@ -4705,7 +4698,10 @@ ${ctxStr}
       ? ((document.getElementById('ai-custom-model') || {}).value || '')
       : ((document.getElementById('ai-model') || {}).value || '');
 
-    if (!cfg.key && !isOllama) return;
+    if (!cfg.key && !isOllama) {
+      _showQRFallback(chipsEl, containerEl);
+      return;
+    }
 
     const baseUrl = _arGetBaseUrl();
     const fmt = isCustom ? cfg.apiFormat
@@ -4713,41 +4709,55 @@ ${ctxStr}
 
     try {
       const ctrl = new AbortController();
-      const timeoutId = setTimeout(() => ctrl.abort(), 15000); // 15s timeout
+      const timeoutId = setTimeout(() => { ctrl.abort(); _showQRFallback(chipsEl, containerEl); }, 20000);
 
-      const body = fmt === 'anthropic'
-        ? { model, messages, max_tokens: 512, system: messages.find(m => m.role === 'system')?.content || '' }
-        : { model, messages, max_tokens: 512 };
+      const reqBody = {
+        model, messages,
+        max_tokens: 384,
+        temperature: 0.4,
+        stream: false
+      };
+      if (fmt === 'anthropic') {
+        reqBody.system = messages.find(m => m.role === 'system')?.content || '';
+      }
 
       const resp = await fetch(arWrapWithProxy(baseUrl + '/chat/completions'), {
         method: 'POST',
         headers: _arBuildHeaders(cfg.key, fmt),
-        body: JSON.stringify(fmt === 'anthropic' ? body : { ...body, stream: false }),
+        body: JSON.stringify(reqBody),
         signal: ctrl.signal
       });
 
       clearTimeout(timeoutId);
-      if (!resp.ok) return;
-
-      const json = await resp.json();
-      const text = fmt === 'anthropic'
-        ? (json.content?.[0]?.text || '')
-        : (json.choices?.[0]?.message?.content || '');
-
-      let replies = [];
-      try {
-        const parsed = JSON.parse(text);
-        replies = parsed.replies || [];
-      } catch {
-        // fallback：嘗試從文字中解析 JSON 陣列
-        const match = text.match(/\"replies\"\s*:\s*\[([\s\S]*)\]/);
-        if (match) {
-          try { replies = JSON.parse('[' + match[1] + ']'); } catch {}
-        }
+      if (!resp.ok) {
+        console.warn('[QR] API 錯誤:', resp.status, resp.statusText);
+        _showQRFallback(chipsEl, containerEl);
+        return;
       }
 
-      if (replies.length === 0) return;
+      const json = await resp.json();
 
+      // 支援多種 response 格式
+      let text = '';
+      if (fmt === 'anthropic') {
+        text = json.content?.[0]?.text || json.content?.[0]?.type === 'text' ? json.content?.[0]?.text : '';
+      } else {
+        text = json.choices?.[0]?.message?.content || json.choices?.[0]?.text || '';
+      }
+
+      // 如果 content 在 error 欄位（常見於矽流動等）
+      if (!text && json.error?.message) text = json.error.message;
+      if (!text && json.error?.text) text = json.error.text;
+
+      let replies = _parseQRReplies(text);
+
+      if (replies.length === 0) {
+        console.warn('[QR] 無法解析回覆:', text.slice(0, 200));
+        _showQRFallback(chipsEl, containerEl);
+        return;
+      }
+
+      chipsEl.innerHTML = '';
       replies.slice(0, 6).forEach(reply => {
         const btn = document.createElement('button');
         btn.className = 'quick-reply-chip';
@@ -4756,13 +4766,74 @@ ${ctxStr}
           const input = document.getElementById('ai-input');
           if (input) { input.value = reply; input.focus(); }
         };
-        chips.appendChild(btn);
+        chipsEl.appendChild(btn);
       });
 
       containerEl.style.display = 'block';
     } catch (e) {
-      // silent fail — quick replies 是增強功能，不影響主流程
+      console.warn('[QR] 例外:', e.message);
+      _showQRFallback(chipsEl, containerEl);
     }
+  }
+
+  function _parseQRReplies(text) {
+    // 嘗試完整 JSON 解析
+    try {
+      const parsed = JSON.parse(text);
+      if (Array.isArray(parsed)) return parsed.filter(t => typeof t === 'string' && t.trim());
+      if (parsed.replies) return parsed.replies.filter(t => typeof t === 'string' && t.trim());
+    } catch {}
+
+    // 從文字中解析 JSON 陣列
+    const patterns = [
+      /\"replies\"\s*:\s*\[([^\]]+)\]/,
+      /\"replies\"\s*:\s*(\[[\s\S]*?\])/,
+      /\[[\s\S]*?\"([^\"]{5,30})\"[\s\S]*?\]/,
+    ];
+    for (const pat of patterns) {
+      const m = text.match(pat);
+      if (m) {
+        try {
+          const arr = JSON.parse(m[1].startsWith('[') ? m[1] : '[' + m[1] + ']');
+          if (Array.isArray(arr)) return arr.filter(t => typeof t === 'string' && t.trim().length > 3);
+        } catch {}
+      }
+    }
+
+    // 最後 fallback：取第一個 ```json ``` 區塊
+    const codeM = text.match(/```json\s*([\s\S]*?)```/);
+    if (codeM) {
+      try {
+        const parsed = JSON.parse(codeM[1]);
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed.replies) return parsed.replies;
+      } catch {}
+    }
+
+    return [];
+  }
+
+  function _showQRFallback(chipsEl, containerEl) {
+    // 提供通用 fallback 追問
+    const fallbackReplies = [
+      '🔍 查看帳齡 >90 天的客戶清單',
+      '📊 比較本月與上月壞帳率變化',
+      '⚠️ 識別三星電子的信用風險',
+      '📋 產生催收動作執行清單',
+      '💡 有哪些授信策略可以改善？'
+    ];
+    chipsEl.innerHTML = '';
+    fallbackReplies.slice(0, 4).forEach(reply => {
+      const btn = document.createElement('button');
+      btn.className = 'quick-reply-chip';
+      btn.textContent = reply;
+      btn.onclick = () => {
+        const input = document.getElementById('ai-input');
+        if (input) { input.value = reply.replace(/^[^\s]+\s/, ''); input.focus(); }
+      };
+      chipsEl.appendChild(btn);
+    });
+    containerEl.style.display = 'block';
   }
 
   function _arGetBaseUrl() {
